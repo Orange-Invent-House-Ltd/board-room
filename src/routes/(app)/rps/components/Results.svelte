@@ -9,6 +9,7 @@
 		userChoice: string | null;
 		computerChoice: string | null;
 		resultMessage: string | null;
+		subMessage: string;
 	};
 	let {
 		computerChoice,
@@ -16,7 +17,8 @@
 		lost,
 		userChoice,
 		won,
-		resultMessage = $bindable()
+		resultMessage = $bindable(),
+		subMessage
 	}: Props = $props();
 </script>
 
@@ -38,7 +40,7 @@
 
 	<div class="mx-auto my-[60px] w-fit text-center">
 		<h1 class="text-4xl font-bold">{resultMessage}</h1>
-		<p>Rock beats Scissors</p>
+		<p>{subMessage}</p>
 	</div>
 	<div class="mb-[60px] flex justify-between">
 		{#if userChoice === 'rock' && computerChoice === 'scissors'}

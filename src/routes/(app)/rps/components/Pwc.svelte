@@ -11,6 +11,7 @@
 	let userChoice: string | null = $state(null);
 	let computerChoice: string | null = $state(null);
 	let resultMessage: string | null = $state(null);
+	let subMessage = $state('');
 	let animate = $state(false);
 
 	async function playGame(choice: string) {
@@ -40,24 +41,27 @@
 				})
 			});
 			resultMessage = `It's a draw`;
+			subMessage = `Both players chose ${userChoice}`;
 		} else if (
 			(userChoice === 'rock' && computerChoice === 'scissors') ||
 			(userChoice === 'paper' && computerChoice === 'rock') ||
 			(userChoice === 'scissors' && computerChoice === 'paper')
 		) {
 			won += 1;
+			resultMessage = `You win`;
+			subMessage = ` ${userChoice} beats ${computerChoice}`;
 			await fetch('/api/rps/plw', {
 				method: 'POST',
 				body: JSON.stringify({ winner: true, gameHistoryId: $page.url.searchParams.get('gh') })
 			});
-			resultMessage = `You win`;
 		} else {
 			lost += 1;
+			resultMessage = `You lose!`;
+			subMessage = ` ${computerChoice} beats ${userChoice}`;
 			await fetch('/api/rps/plw', {
 				method: 'POST',
 				body: JSON.stringify({ winner: false, gameHistoryId: $page.url.searchParams.get('gh') })
 			});
-			resultMessage = `You lose!`;
 		}
 	}
 	// Utility function to create a delay
@@ -68,7 +72,7 @@
 
 {#if resultMessage}
 	<div transition:slide>
-		<Results {computerChoice} {draw} {lost} bind:resultMessage {userChoice} {won} />
+		<Results {subMessage} {computerChoice} {draw} {lost} bind:resultMessage {userChoice} {won} />
 	</div>
 {:else}
 	<div class="">

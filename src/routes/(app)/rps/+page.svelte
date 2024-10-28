@@ -9,7 +9,8 @@
 			icon: './circleComputer.svg',
 			title: 'Play with computer',
 			subTitle: 'Play against our ever smart AI bots now.',
-			href: 'play-with-computer'
+			href: 'play-with-computer',
+			action: 'playWithComputer'
 		},
 		{
 			icon: './playWithFriends.svg',
@@ -27,7 +28,8 @@
 			icon: './circleTournament.svg',
 			title: 'Create tournament',
 			subTitle: 'Create and play your favourite game with a friend now.',
-			href: 'create-tournament'
+			href: 'create-tournament',
+			action: 'createTournament'
 		},
 		{
 			icon: './instantPlay.svg',
@@ -44,21 +46,23 @@
 >
 	<AboutRps onclick={() => (hideAboutRps = true)} />
 </div> -->
-<h1 class="mb-10 text-2xl font-medium">Rock, Paper, Scissors</h1>
-<form use:enhance method="POST" class="grid grid-cols-2 gap-3 sm:gap-5">
-	{#each playOptions as { icon, subTitle, title, href }}
-		<input hidden name="href" value={'rps/' + href} />
 
-		<button
-			formaction="?/startGame"
-			class=" inline-block w-full space-y-1 rounded-md border border-[#6D6D6E] px-3 py-[18px] text-left"
-		>
-			<img src={icon} alt="" />
-			<p class="text-sm font-semibold">{title}</p>
-			<p class="mt-1 text-[10px] font-light">{subTitle}</p>
-		</button>
+<h1 class="mb-10 text-2xl font-medium">Rock, Paper, Scissors</h1>
+<div class="grid grid-cols-2 gap-3 sm:gap-5">
+	{#each playOptions as { icon, subTitle, title, href, action }}
+		<form use:enhance action="?/{action}" method="POST">
+			<input hidden name="href" value={'rps/' + href} />
+
+			<button
+				class=" inline-block w-full space-y-1 rounded-md border border-[#6D6D6E] px-3 py-[18px] text-left"
+			>
+				<img src={icon} alt="" />
+				<p class="text-sm font-semibold">{title}</p>
+				<p class="mt-1 text-[10px] font-light">{subTitle}</p>
+			</button>
+		</form>
 	{/each}
-</form>
+</div>
 
 <div class="mt-10">
 	<p class="mb-4">Quick pairing</p>

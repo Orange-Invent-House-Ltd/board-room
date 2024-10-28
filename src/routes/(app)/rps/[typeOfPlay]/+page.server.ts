@@ -1,8 +1,14 @@
-import { gameHistoryTable, statsTable } from '$lib/server/db/schema.js';
-import { error, redirect } from '@sveltejs/kit';
+import { CatRpsSchema } from '$lib/formSchema.js';
+import { gameHistoryTable, statsTable, tournamentsTable } from '$lib/server/db/schema.js';
+import { error, fail, redirect } from '@sveltejs/kit';
 import { sql, and, eq } from 'drizzle-orm';
-export const load = async ({ url }) => {
-	console.log('🚀 ~ load ~ url:', url);
+import { message, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
+export const load = async () => {
+	const catForm = await superValidate(zod(CatRpsSchema));
+	return {
+		catForm
+	};
 };
 
 export const actions = {
@@ -66,5 +72,28 @@ export const actions = {
 			// error(500, 'something went wrong');
 		}
 		redirect(303, '/rps');
+	},
+	cat: async ({ locals: { db, user }, request }) => {
+		console.log('🚀 ~ cat: ~ user:', user);
+		if (!user) error(401, 'Unauthorized');
+		const form = await superValidate(request, zod(CatRpsSchema));
+		const { data, valid } = form;
+		if (!valid) return fail(400, { form });
+		const res = await db
+			.insert(tournamentsTable)
+			.values({
+				type: data.type,
+				duration: data.duration,
+				name: data.name,
+				maxPlayers: data.maximumPlayers,
+				status: 'LIVE',
+				fee: data.fee,
+				gameId: 4,
+				userId: user.id
+			})
+			.returning()
+			.get();
+		console.log('🚀 ~ cat: ~ res:', res);
+		return message(form, res);
 	}
 };

@@ -116,16 +116,19 @@ export const movesTable = sqliteTable('moves', {
 export const tournamentsTable = sqliteTable('tournaments', {
 	id: integer().primaryKey({ autoIncrement: true }),
 	name: text().notNull(),
-	gameId: integer().references(() => gamesTable.id),
-	prize: integer().notNull(),
-	gameMode: text().notNull(),
+	gameId: integer()
+		.references(() => gamesTable.id)
+		.notNull(),
 	duration: integer().notNull(),
-	type: text({ enum: ['PUBLIC', 'PRIVATE'] }).notNull(),
+	type: text({ enum: ['public', 'private'] }).notNull(),
 	maxPlayers: integer().notNull(),
-	startTime: integer('start', { mode: 'timestamp' }).notNull(),
+	startTime: integer('start', { mode: 'timestamp' }),
 	endTime: integer('end', { mode: 'timestamp' }),
 	status: text({ enum: ['UPCOMING', 'LIVE', 'COMPLETED'] }).notNull(),
-	currentPlayers: integer().default(0)
+	currentPlayers: integer().default(0),
+	userId: integer().references(() => usersTable.id),
+	fee: integer().default(0).notNull(),
+	...timestamps
 });
 
 export const participantsTable = sqliteTable(
@@ -139,7 +142,8 @@ export const participantsTable = sqliteTable(
 		losses: integer().default(0),
 		joinedAt: integer('joined', { mode: 'timestamp' })
 			.notNull()
-			.default(sql`CURRENT_TIMESTAMP`)
+			.default(sql`CURRENT_TIMESTAMP`),
+		...timestamps
 	},
 	(table) => ({
 		pk: primaryKey({ columns: [table.tournamentId, table.userId], name: 'id' })
@@ -155,5 +159,6 @@ export const matches = sqliteTable('matches', {
 	result: text({ enum: ['WIN', 'DRAW', 'ONGOING'] }),
 	startTime: integer('start', { mode: 'timestamp' }),
 	endTime: integer('end', { mode: 'timestamp' }),
-	status: text({ enum: ['SCHEDULED', 'LIVE', 'COMPLETED'] }).default('SCHEDULED')
+	status: text({ enum: ['SCHEDULED', 'LIVE', 'COMPLETED'] }).default('SCHEDULED'),
+	...timestamps
 });

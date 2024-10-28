@@ -1,10 +1,11 @@
 import type { InferSelectModel } from 'drizzle-orm';
-import type { gamesTable, statsTable, usersTable } from './server/db/schema';
+import type { gamesTable, statsTable, tournamentsTable, usersTable } from './server/db/schema';
 
 // Base table types
 export type User = InferSelectModel<typeof usersTable>;
 export type Game = InferSelectModel<typeof gamesTable>;
 export type Stats = InferSelectModel<typeof statsTable>;
+export type Tournament = InferSelectModel<typeof tournamentsTable>;
 
 // Type for stats with game info
 type StatWithGame = Stats & {

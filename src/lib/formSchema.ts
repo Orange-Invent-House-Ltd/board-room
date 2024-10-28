@@ -37,5 +37,11 @@ export const playWithFriendSchema = z.object({
 		.refine((val) => val >= 100, 'Minimum staking amount is ₦100')
 		.refine((val) => val <= 1000000, 'Maximum staking amount is ₦1,000,000')
 });
-
+export const CatRpsSchema = z.object({
+	name: z.string().min(1, 'Name is required'),
+	type: z.enum(['public', 'private']),
+	maximumPlayers: z.number().int().min(2, 'Minimum players is 2').max(10, 'Maximum players is 10'),
+	duration: z.number().int().min(1, 'Duration is required'),
+	fee: z.number().int().min(1, 'Fee is required')
+});
 export type PlayWithFriendFormData = z.infer<typeof playWithFriendSchema>;

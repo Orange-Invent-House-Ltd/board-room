@@ -30,6 +30,8 @@ CREATE TABLE `matches` (
 	`start` integer,
 	`end` integer,
 	`status` text DEFAULT 'SCHEDULED',
+	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
+	`updated_at` text,
 	FOREIGN KEY (`tournament_id`) REFERENCES `tournaments`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`player1_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`player2_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
@@ -56,6 +58,8 @@ CREATE TABLE `participants` (
 	`draws` integer DEFAULT 0,
 	`losses` integer DEFAULT 0,
 	`joined` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
+	`updated_at` text,
 	PRIMARY KEY(`tournament_id`, `user_id`),
 	FOREIGN KEY (`tournament_id`) REFERENCES `tournaments`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
@@ -86,17 +90,20 @@ CREATE TABLE `stats` (
 CREATE TABLE `tournaments` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
-	`game_id` integer,
-	`prize` integer NOT NULL,
-	`game_mode` text NOT NULL,
+	`game_id` integer NOT NULL,
 	`duration` integer NOT NULL,
 	`type` text NOT NULL,
 	`max_players` integer NOT NULL,
-	`start` integer NOT NULL,
+	`start` integer,
 	`end` integer,
 	`status` text NOT NULL,
 	`current_players` integer DEFAULT 0,
-	FOREIGN KEY (`game_id`) REFERENCES `games`(`id`) ON UPDATE no action ON DELETE no action
+	`user_id` integer,
+	`fee` integer DEFAULT 0,
+	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
+	`updated_at` text,
+	FOREIGN KEY (`game_id`) REFERENCES `games`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE `users` (

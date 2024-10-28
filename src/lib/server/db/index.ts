@@ -2,7 +2,7 @@
 import { drizzle } from 'drizzle-orm/d1';
 
 import * as schema from './schema';
-import { migrate } from 'drizzle-orm/d1/migrator';
+// import { migrate } from 'drizzle-orm/d1/migrator';
 
 export async function createClient(dbInstance: D1Database) {
 	// const db = await drizzle('d1', {
@@ -12,9 +12,9 @@ export async function createClient(dbInstance: D1Database) {
 	// });
 	const db = drizzle(dbInstance, { schema, casing: 'snake_case' });
 	// const db = drizzle(dbInstance, { schema });
-	await migrate(db, {
-		migrationsFolder: './migrations',
-		migrationsSchema: './src/lib/server/db/schema.ts'
-	});
+	// await migrate(db, {
+	// 	migrationsFolder: './migrations',
+	// 	migrationsSchema: './src/lib/server/db/schema.ts'
+	// });
 	return db;
 }

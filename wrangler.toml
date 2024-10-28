@@ -9,3 +9,10 @@ assets = { directory = ".svelte-kit/cloudflare", binding = "ASSETS" }
 # Configuration: https://developers.cloudflare.com/workers/observability/logs/workers-logs/#enable-workers-logs
 [observability]
 enabled = true
+
+[[d1_databases]]
+binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "board-room"
+database_id = "64baad39-5e5f-4055-8442-7b656c693be4"
+migrations_dir = "migrations"
+

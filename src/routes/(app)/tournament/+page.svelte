@@ -4,7 +4,7 @@
 	import { Filter } from 'lucide-svelte';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 
-	export let data: PageData;
+	const { data } = $props();
 </script>
 
 <div class="flex items-center justify-between gap-5">
@@ -35,27 +35,32 @@
 </div>
 
 <div class="space-y-4">
-	{#each { length: 5 } as _}
+	{#each data.tournaments as tournament}
 		<div class="rounded-md border border-[#AFAFAF] p-4">
 			<div class="mb-2 flex justify-between text-sm font-medium">
-				<p>Blitz</p>
-				<p>(#)25,000</p>
+				<p>{tournament.name}</p>
+				<p>(#){tournament.fee}</p>
 			</div>
 			<p class="mb-2 flex items-center gap-5 text-xs text-[#AFAFAF]">
 				<img src="/people.svg" alt="" />
-				<span class="font-medium">2</span>
+				<span class="font-medium">{tournament.maxPlayers}</span>
 			</p>
 			<p class="mb-2 flex items-center gap-5 text-xs text-[#AFAFAF]">
 				<img src="/clock.svg" alt="" />
-				<span class="font-medium">5 hours</span>
+				<span class="font-medium">{tournament.duration}</span>
 			</p>
 			<div class="mb-2 flex items-center justify-between text-xs text-[#AFAFAF]">
 				<p class="flex items-center gap-5">
 					<img src="/lock.svg" alt="" />
-					<span class="font-medium">Public</span>
+					<span class="font-medium">{tournament.type}</span>
 				</p>
-				<p>% users joined</p>
+				<p>{tournament.currentPlayers} users joined</p>
 			</div>
+		</div>
+	{:else}
+		<div class="text-center">
+			<p class="mb-1 text-base font-medium">No tournaments available yet!</p>
+			<p class="text-xs font-normal">Check back later or create your own tournament.</p>
 		</div>
 	{/each}
 </div>

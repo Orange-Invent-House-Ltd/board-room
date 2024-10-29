@@ -5,8 +5,8 @@ import { GAME_STATUS } from '../../constants';
 
 // Example schema - modify according to your needs
 export const timestamps = {
-	createdAt: text().default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text().$onUpdate(() => sql`(CURRENT_TIMESTAMP)`)
+	createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
+	updatedAt: text('updated_at').$onUpdate(() => sql`(CURRENT_TIMESTAMP)`)
 };
 export function array<T>() {
 	return text('', { mode: 'json' }).$type<T[]>();
@@ -18,9 +18,9 @@ export const usersTable = sqliteTable('users', {
 	name: text('name').notNull(),
 	email: text('email').unique(),
 	picture: text('picture'),
-	xHandle: text(),
-	instagramHandle: text(),
-	facebookHandle: text(),
+	xHandle: text('x_handle'),
+	instagramHandle: text('instagram_handle'),
+	facebookHandle: text('facebook_handle'),
 	...timestamps
 });
 
@@ -43,7 +43,7 @@ export const gamesTable = sqliteTable('games', {
 export const statsTable = sqliteTable(
 	'stats',
 	{
-		userId: integer()
+		userId: integer('user_id')
 			.notNull()
 			.references(() => usersTable.id),
 		gameId: integer('game_id')
@@ -82,65 +82,65 @@ export const statsRelations = relations(statsTable, ({ one }) => ({
 	})
 }));
 export const gameHistoryTable = sqliteTable('game_history', {
-	id: integer().primaryKey({ autoIncrement: true }),
-	gameId: integer()
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	gameId: integer('game_id')
 		.notNull()
 		.references(() => gamesTable.id),
-	playerOneId: integer()
+	playerOneId: integer('player_one_id')
 		.notNull()
 		.references(() => usersTable.id),
 	// Nullable for computer opponent
-	playerTwoId: integer().references(() => usersTable.id),
+	playerTwoId: integer('player_two_id').references(() => usersTable.id),
 	// true for computer opponent
-	isComputerOpponent: integer({ mode: 'boolean' }).notNull().default(false),
-	winner: integer().references(() => usersTable.id),
-	status: text({ enum: GAME_STATUS }).notNull().default('IN_PROGRESS'),
+	isComputerOpponent: integer('is_computer_opponent', { mode: 'boolean' }).notNull().default(false),
+	winner: integer('winner').references(() => usersTable.id),
+	status: text('status', { enum: GAME_STATUS }).notNull().default('IN_PROGRESS'),
 	...timestamps
 });
 
 // For storing moves within a game
 export const movesTable = sqliteTable('moves', {
-	id: integer().primaryKey({ autoIncrement: true }),
-	gameHistoryId: integer()
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	gameHistoryId: integer('game_history_id')
 		.notNull()
 		.references(() => gameHistoryTable.id),
-	playerId: integer()
+	playerId: integer('player_id')
 		.notNull()
 		.references(() => usersTable.id),
 	// Store move as JSON to support different game move types
 	move: text('move').notNull(),
-	roundNumber: integer().notNull().default(1),
+	roundNumber: integer('round_number').notNull().default(1),
 	...timestamps
 });
 
 export const tournamentsTable = sqliteTable('tournaments', {
-	id: integer().primaryKey({ autoIncrement: true }),
-	name: text().notNull(),
-	gameId: integer()
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	name: text('name').notNull(),
+	gameId: integer('game_id')
 		.references(() => gamesTable.id)
 		.notNull(),
-	duration: integer().notNull(),
-	type: text({ enum: ['public', 'private'] }).notNull(),
-	maxPlayers: integer().notNull(),
-	startTime: integer('start', { mode: 'timestamp' }),
-	endTime: integer('end', { mode: 'timestamp' }),
-	status: text({ enum: ['UPCOMING', 'LIVE', 'COMPLETED'] }).notNull(),
-	currentPlayers: integer().default(0),
-	userId: integer().references(() => usersTable.id),
-	fee: integer().default(0).notNull(),
+	duration: integer('duration').notNull(),
+	type: text('type', { enum: ['public', 'private'] }).notNull(),
+	maxPlayers: integer('max_players').notNull(),
+	startTime: integer('start_time', { mode: 'timestamp' }),
+	endTime: integer('end_time', { mode: 'timestamp' }),
+	status: text('status', { enum: ['UPCOMING', 'LIVE', 'COMPLETED'] }).notNull(),
+	currentPlayers: integer('current_players').default(0),
+	userId: integer('user_id').references(() => usersTable.id),
+	fee: integer('fee').default(0).notNull(),
 	...timestamps
 });
 
 export const participantsTable = sqliteTable(
 	'participants',
 	{
-		tournamentId: integer().references(() => tournamentsTable.id),
-		userId: integer().references(() => usersTable.id),
-		points: integer().default(0),
-		wins: integer().default(0),
-		draws: integer().default(0),
-		losses: integer().default(0),
-		joinedAt: integer('joined', { mode: 'timestamp' })
+		tournamentId: integer('tournament_id').references(() => tournamentsTable.id),
+		userId: integer('user_id').references(() => usersTable.id),
+		points: integer('points').default(0),
+		wins: integer('wins').default(0),
+		draws: integer('draws').default(0),
+		losses: integer('losses').default(0),
+		joinedAt: integer('joined_at', { mode: 'timestamp' })
 			.notNull()
 			.default(sql`CURRENT_TIMESTAMP`),
 		...timestamps
@@ -151,14 +151,14 @@ export const participantsTable = sqliteTable(
 );
 
 export const matches = sqliteTable('matches', {
-	id: integer().primaryKey({ autoIncrement: true }),
-	tournamentId: integer().references(() => tournamentsTable.id),
-	player1Id: integer().references(() => usersTable.id),
-	player2Id: integer().references(() => usersTable.id),
-	winnerId: integer().references(() => usersTable.id),
-	result: text({ enum: ['WIN', 'DRAW', 'ONGOING'] }),
-	startTime: integer('start', { mode: 'timestamp' }),
-	endTime: integer('end', { mode: 'timestamp' }),
-	status: text({ enum: ['SCHEDULED', 'LIVE', 'COMPLETED'] }).default('SCHEDULED'),
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	tournamentId: integer('tournament_id').references(() => tournamentsTable.id),
+	player1Id: integer('player_1_id').references(() => usersTable.id),
+	player2Id: integer('player_2_id').references(() => usersTable.id),
+	winnerId: integer('winner_id').references(() => usersTable.id),
+	result: text('result', { enum: ['WIN', 'DRAW', 'ONGOING'] }),
+	startTime: integer('start_time', { mode: 'timestamp' }),
+	endTime: integer('end_time', { mode: 'timestamp' }),
+	status: text('status', { enum: ['SCHEDULED', 'LIVE', 'COMPLETED'] }).default('SCHEDULED'),
 	...timestamps
 });

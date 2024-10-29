@@ -10,7 +10,7 @@ export async function createClient(dbInstance: D1Database) {
 	// 	schema,
 	// 	connection: dbInstance
 	// });
-	const db = drizzle(dbInstance, { schema, casing: 'snake_case' });
+	const db = drizzle(dbInstance, { schema });
 	// const db = drizzle(dbInstance, { schema });
 	// await migrate(db, {
 	// 	migrationsFolder: './migrations',

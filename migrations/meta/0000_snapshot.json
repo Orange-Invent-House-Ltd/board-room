@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "0bc30aba-f806-42b1-9e37-fc95df6e5214",
+  "id": "28274e90-49e4-4c5a-a145-259420db1e7b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "game_history": {
@@ -180,15 +180,15 @@
           "notNull": false,
           "autoincrement": false
         },
-        "player1_id": {
-          "name": "player1_id",
+        "player_1_id": {
+          "name": "player_1_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "player2_id": {
-          "name": "player2_id",
+        "player_2_id": {
+          "name": "player_2_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -208,15 +208,15 @@
           "notNull": false,
           "autoincrement": false
         },
-        "start": {
-          "name": "start",
+        "start_time": {
+          "name": "start_time",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "end": {
-          "name": "end",
+        "end_time": {
+          "name": "end_time",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -261,12 +261,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "matches_player1_id_users_id_fk": {
-          "name": "matches_player1_id_users_id_fk",
+        "matches_player_1_id_users_id_fk": {
+          "name": "matches_player_1_id_users_id_fk",
           "tableFrom": "matches",
           "tableTo": "users",
           "columnsFrom": [
-            "player1_id"
+            "player_1_id"
           ],
           "columnsTo": [
             "id"
@@ -274,12 +274,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "matches_player2_id_users_id_fk": {
-          "name": "matches_player2_id_users_id_fk",
+        "matches_player_2_id_users_id_fk": {
+          "name": "matches_player_2_id_users_id_fk",
           "tableFrom": "matches",
           "tableTo": "users",
           "columnsFrom": [
-            "player2_id"
+            "player_2_id"
           ],
           "columnsTo": [
             "id"
@@ -440,8 +440,8 @@
           "autoincrement": false,
           "default": 0
         },
-        "joined": {
-          "name": "joined",
+        "joined_at": {
+          "name": "joined_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -652,8 +652,8 @@
       "compositePrimaryKeys": {
         "stats_user_id_game_id_pk": {
           "columns": [
-            "user_id",
-            "game_id"
+            "game_id",
+            "user_id"
           ],
           "name": "stats_user_id_game_id_pk"
         }
@@ -705,15 +705,15 @@
           "notNull": true,
           "autoincrement": false
         },
-        "start": {
-          "name": "start",
+        "start_time": {
+          "name": "start_time",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "end": {
-          "name": "end",
+        "end_time": {
+          "name": "end_time",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -745,7 +745,7 @@
           "name": "fee",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": 0
         },

@@ -19,22 +19,21 @@ CREATE TABLE `games` (
 	`name` text NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `games_name_unique` ON `games` (`name`);--> statement-breakpoint
 CREATE TABLE `matches` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`tournament_id` integer,
-	`player1_id` integer,
-	`player2_id` integer,
+	`player_1_id` integer,
+	`player_2_id` integer,
 	`winner_id` integer,
 	`result` text,
-	`start` integer,
-	`end` integer,
+	`start_time` integer,
+	`end_time` integer,
 	`status` text DEFAULT 'SCHEDULED',
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
 	`updated_at` text,
 	FOREIGN KEY (`tournament_id`) REFERENCES `tournaments`(`id`) ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY (`player1_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY (`player2_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`player_1_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`player_2_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`winner_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
@@ -57,7 +56,7 @@ CREATE TABLE `participants` (
 	`wins` integer DEFAULT 0,
 	`draws` integer DEFAULT 0,
 	`losses` integer DEFAULT 0,
-	`joined` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`joined_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
 	`updated_at` text,
 	PRIMARY KEY(`tournament_id`, `user_id`),
@@ -82,7 +81,7 @@ CREATE TABLE `stats` (
 	`games_drawn` integer DEFAULT 0 NOT NULL,
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
 	`updated_at` text,
-	PRIMARY KEY(`user_id`, `game_id`),
+	PRIMARY KEY(`game_id`, `user_id`),
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`game_id`) REFERENCES `games`(`id`) ON UPDATE no action ON DELETE no action
 );
@@ -94,12 +93,12 @@ CREATE TABLE `tournaments` (
 	`duration` integer NOT NULL,
 	`type` text NOT NULL,
 	`max_players` integer NOT NULL,
-	`start` integer,
-	`end` integer,
+	`start_time` integer,
+	`end_time` integer,
 	`status` text NOT NULL,
 	`current_players` integer DEFAULT 0,
 	`user_id` integer,
-	`fee` integer DEFAULT 0,
+	`fee` integer DEFAULT 0 NOT NULL,
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
 	`updated_at` text,
 	FOREIGN KEY (`game_id`) REFERENCES `games`(`id`) ON UPDATE no action ON DELETE no action,
@@ -119,5 +118,6 @@ CREATE TABLE `users` (
 	`updated_at` text
 );
 --> statement-breakpoint
+CREATE UNIQUE INDEX `games_name_unique` ON `games` (`name`);--> statement-breakpoint
 CREATE UNIQUE INDEX `users_google_id_unique` ON `users` (`google_id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `users_email_unique` ON `users` (`email`);

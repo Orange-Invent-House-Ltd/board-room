@@ -22,23 +22,27 @@
 			imgHead: '/checkerCard/checkerHead.png',
 			imgBoard: '/checkerCard/checkerBoard.png'
 		},
-
 		{
 			href: '/rps',
 			imgHead: '/rpsCard/rpsHead.png',
 			imgBoard: '/rpsCard/rpsBoard.png'
 		}
 	];
+
+	// Preload images
+	$: preloadedImages = games.flatMap(({ imgHead, imgBoard }) => [imgHead, imgBoard]);
 </script>
+
+<svelte:head>
+	{#each preloadedImages as image}
+		<link rel="preload" href={image} as="image" />
+	{/each}
+</svelte:head>
 
 <div>
 	<h1 class="mb-20 text-2xl font-medium">Explore</h1>
-
-	<!-- <div class="relative">
-		<img src="./chessCard/chessHeader.svg" alt="" />
-		<img src="./chessCard/chessboard.svg" alt="" />
-	</div> -->
 </div>
+
 <Carousel.Root class="mb-10 w-full">
 	<Carousel.Content class="-ml-6 ">
 		{#each games as { href, imgBoard, imgHead }, i (i)}

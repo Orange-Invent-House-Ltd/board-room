@@ -74,7 +74,7 @@
 			};
 		}}
 		method="POST"
-		action={`/rps?/startGame`}
+		action={`/rps?/playWithComputer`}
 		class="sticky bottom-0 left-0 mt-8 w-full border-t border-gray-700 bg-black px-5 py-5"
 	>
 		<input hidden name="href" value={'/rps/' + 'play-with-computer'} />

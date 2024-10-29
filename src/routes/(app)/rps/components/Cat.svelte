@@ -16,7 +16,7 @@
 	} = $props();
 
 	let openDrawer = $state(false);
-	let tournamentInformation: Tournament = $state({});
+	let tournamentInformation: Tournament = $state();
 	const form = superForm(catForm, {
 		validators: zodClient(CatRpsSchema),
 		onUpdated: async ({ form }) => {

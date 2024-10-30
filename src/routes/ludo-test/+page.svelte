@@ -159,8 +159,12 @@
 
 <div class="ludo-container">
 	<div class="h-[450px] w-full bg-cover bg-center relative">
-		<img src="./ludo-bg.jpg" alt="" />
-		<div class="player-pieces">
+		<img
+			src="./ludo-bg.jpg"
+			alt="ludo-bg"
+			class="h-full absolute w-full border border-red-400 object-cover pointer-events-none -z-10"
+		/>
+		<div class="player-pieces z-50">
 			{#each PLAYERS as player}
 				{#each [0, 1, 2, 3] as piece}
 					<div
@@ -206,13 +210,7 @@
 		width: 450px;
 		margin: 20px auto;
 	}
-	/* .ludo {
-		height: 450px;
-		width: 100%;
-		background-image: url('./ludo-bg.jpg');
-		background-size: contain;
-		position: relative;
-	} */
+
 	.player-pieces {
 		height: 100%;
 		width: 100%;

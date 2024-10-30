@@ -3,6 +3,7 @@
 	import * as Avatar from '$lib/components/ui/avatar';
 	import { Button } from '$lib/components/ui/button';
 	import { X } from 'lucide-svelte';
+	import { formatNaira } from '$lib/utils';
 	type Props = {
 		open: boolean;
 		name: string;
@@ -58,7 +59,7 @@
 				</div>
 				<div class="flex items-center justify-between">
 					<p>Tournament fee</p>
-					<p>{fee}</p>
+					<p>{formatNaira(fee)}</p>
 				</div>
 			</div>
 			<Button variant="outline" class="mt-6 w-full rounded-full bg-[#3574F5]">Share link</Button>

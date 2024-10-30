@@ -9,6 +9,10 @@
 	import TournamentDrawer from '$lib/components/Drawers/TournamentDrawer.svelte';
 	import { Loader2 } from 'lucide-svelte';
 	import type { Tournament } from '$lib/types';
+	import { TOURNAMENT_TYPE } from '$lib/constants';
+	import * as Select from '$lib/components/ui/select';
+	import { formatNaira } from '$lib/utils';
+	import CurrencyInput from '@canutin/svelte-currency-input';
 	let {
 		catForm
 	}: {
@@ -29,6 +33,20 @@
 	});
 
 	const { enhance, delayed, form: formData } = form;
+	const formatCurrency = (value) => {
+		// Use Intl.NumberFormat to format the value as currency
+		return value.toLocaleString('en-US', {
+			style: 'currency',
+			currency: 'USD',
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2
+		});
+	};
+	const handleChange = (event) => {
+		// Remove the currency formatting and dispatch the change event
+		const unformattedValue = parseFloat(event.target.value.replace(/[^0-9.-]+/g, ''));
+		$formData.fee = formatCurrency(unformattedValue);
+	};
 </script>
 
 <h1 class="mb-10 text-2xl font-medium">Create a Tournament</h1>
@@ -49,7 +67,16 @@
 	<Form.Field {form} name="type">
 		<Form.Control let:attrs>
 			<Form.Label>Tournament type</Form.Label>
-			<Input {...attrs} bind:value={$formData.type} />
+			<Select.Root type="single" bind:value={$formData.type} name={attrs.name}>
+				<Select.Trigger {...attrs}>
+					{$formData.type ?? 'Select a verified email to display'}
+				</Select.Trigger>
+				<Select.Content>
+					{#each TOURNAMENT_TYPE as type, i}
+						<Select.Item value={type} label={type} />
+					{/each}
+				</Select.Content>
+			</Select.Root>
 		</Form.Control>
 		<Form.FieldErrors />
 	</Form.Field>
@@ -71,7 +98,25 @@
 	<Form.Field {form} name="fee">
 		<Form.Control let:attrs>
 			<Form.Label>Tournament fee</Form.Label>
-			<Input {...attrs} type="number" bind:value={$formData.fee} />
+			<!-- <Input
+				{...attrs}
+				type="number"
+				bind:value={$formData.fee}
+				onchange={handleChange}
+				class="tabular-nums"
+			/> -->
+			<CurrencyInput
+				{...attrs}
+				bind:value={$formData.fee}
+				inputClasses={{
+					formatted:
+						'flex h-[56px] w-full rounded-md border border-input bg-white px-3 py-2 text-sm text-background ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+					formattedPositive: '',
+					formattedNegative: 'text-red-700'
+				}}
+				locale="en-NG"
+				currency="NGN"
+			/>
 		</Form.Control>
 		<Form.Description>Private tournaments are not free. A fee is compulsory.</Form.Description>
 		<Form.FieldErrors />

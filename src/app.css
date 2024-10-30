@@ -76,3 +76,7 @@
 		@apply bg-background text-foreground;
 	}
 }
+
+h1 {
+	color: hsl(0, 0%, 100%);
+}

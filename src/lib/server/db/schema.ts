@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { sqliteTable, text, integer, primaryKey } from 'drizzle-orm/sqlite-core';
 import { relations, type InferSelectModel } from 'drizzle-orm';
-import { GAME_STATUS } from '../../constants';
+import { GAME_STATUS, TOURNAMENT_TYPE } from '../../constants';
 
 // Example schema - modify according to your needs
 export const timestamps = {
@@ -120,7 +120,7 @@ export const tournamentsTable = sqliteTable('tournaments', {
 		.references(() => gamesTable.id)
 		.notNull(),
 	duration: integer('duration').notNull(),
-	type: text('type', { enum: ['public', 'private'] }).notNull(),
+	type: text('type', { enum: TOURNAMENT_TYPE }).notNull(),
 	maxPlayers: integer('max_players').notNull(),
 	startTime: integer('start_time', { mode: 'timestamp' }),
 	endTime: integer('end_time', { mode: 'timestamp' }),

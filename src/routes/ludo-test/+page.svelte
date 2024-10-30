@@ -158,7 +158,7 @@
 </script>
 
 <div class="ludo-container">
-	<div class="h-[450px] w-full bg-cover bg-center relative">
+	<div class="min-h-[450px] h-full w-full bg-cover bg-center relative">
 		<img
 			src="./ludo-bg.jpg"
 			alt="ludo-bg"
@@ -207,7 +207,6 @@
 		box-sizing: border-box;
 	}
 	.ludo-container {
-		width: 450px;
 		margin: 20px auto;
 	}
 

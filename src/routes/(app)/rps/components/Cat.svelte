@@ -98,13 +98,7 @@
 	<Form.Field {form} name="fee">
 		<Form.Control let:attrs>
 			<Form.Label>Tournament fee</Form.Label>
-			<!-- <Input
-				{...attrs}
-				type="number"
-				bind:value={$formData.fee}
-				onchange={handleChange}
-				class="tabular-nums"
-			/> -->
+			{$formData.fee}
 			<CurrencyInput
 				{...attrs}
 				bind:value={$formData.fee}

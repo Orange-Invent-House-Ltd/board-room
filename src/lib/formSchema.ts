@@ -47,12 +47,12 @@ export const CatRpsSchema = z
 			.min(2, 'Minimum players is 2')
 			.max(10, 'Maximum players is 10'),
 		duration: z.number().int().min(1, 'Duration is required'),
-		fee: z.number().int().min(1, 'Fee is required').optional()
+		fee: z.number().int().optional()
 	})
 	.refine(
 		(data) => {
 			if (data.type === 'private') {
-				return data.fee !== undefined;
+				return data.fee === 0;
 			}
 			return true;
 		},
@@ -61,4 +61,9 @@ export const CatRpsSchema = z
 			path: ['fee']
 		}
 	);
+export const PwfRpsSchema = z.object({
+	friendEmail: z.string().email(),
+	stakingAmount: z.number().int().optional()
+});
+
 export type PlayWithFriendFormData = z.infer<typeof playWithFriendSchema>;

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { Button } from '$lib/components/ui/button';
+	import { formatNaira } from '$lib/utils';
 	import AboutRps from './components/AboutRps.svelte';
-
+	let { data } = $props();
 	let hideAboutRps = $state(false);
 	const playOptions = [
 		{
@@ -16,7 +17,8 @@
 			icon: './playWithFriends.svg',
 			title: 'Play with Friend',
 			subTitle: 'Create and play your favorite game with a friend now.',
-			href: 'play-with-friend'
+			href: 'play-with-friend',
+			action: 'redirect'
 		},
 		{
 			icon: './schedule.svg',
@@ -29,7 +31,7 @@
 			title: 'Create tournament',
 			subTitle: 'Create and play your favourite game with a friend now.',
 			href: 'create-tournament',
-			action: 'createTournament'
+			action: 'redirect'
 		},
 		{
 			icon: './instantPlay.svg',
@@ -68,19 +70,25 @@
 	<p class="mb-4">Quick pairing</p>
 
 	<div class="space-y-4">
-		{#each { length: 5 } as _}
+		{#each data.tournaments as tournament}
 			<div class="rounded-md border border-[#AFAFAF] p-4">
 				<div class="mb-2 flex justify-between text-sm font-medium">
-					<p>Loser pay</p>
-					<p>(#)Free</p>
+					<p>{tournament.name}</p>
+					<p>
+						{#if !tournament.fee}
+							(#)Free
+						{:else}
+							{formatNaira(tournament.fee)}
+						{/if}
+					</p>
 				</div>
 				<p class="mb-2 flex items-center gap-5 text-xs text-[#AFAFAF]">
 					<img src="/people.svg" alt="" />
-					<span class="font-medium">2</span>
+					<span class="font-medium">{tournament.maxPlayers}</span>
 				</p>
 				<p class="mb-2 flex items-center gap-5 text-xs text-[#AFAFAF]">
 					<img src="/clock.svg" alt="" />
-					<span class="font-medium">5 hours</span>
+					<span class="font-medium">{tournament.duration}</span>
 				</p>
 				<div class="mb-2 flex items-center justify-between text-xs text-[#AFAFAF]">
 					<p class="flex items-center gap-5">

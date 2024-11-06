@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { sqliteTable, text, integer, primaryKey } from 'drizzle-orm/sqlite-core';
 import { relations, type InferSelectModel } from 'drizzle-orm';
-import { GAME_STATUS, TOURNAMENT_TYPE } from '../../constants';
+import { GAME_STATUS, INVITATION_STATUS, TOURNAMENT_TYPE } from '../../constants';
 
 // Example schema - modify according to your needs
 export const timestamps = {
@@ -95,6 +95,23 @@ export const gameHistoryTable = sqliteTable('game_history', {
 	isComputerOpponent: integer('is_computer_opponent', { mode: 'boolean' }).notNull().default(false),
 	winner: integer('winner').references(() => usersTable.id),
 	status: text('status', { enum: GAME_STATUS }).notNull().default('IN_PROGRESS'),
+	stakingAmount: integer('staking_amount'),
+	...timestamps
+});
+// Friend game invitations table
+export const friendGameInvitationsTable = sqliteTable('friend_game_invitations', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	initiatorId: integer('initiator_id')
+		.notNull()
+		.references(() => usersTable.id),
+	invitedUserId: integer('invited_user_id')
+		.notNull()
+		.references(() => usersTable.id),
+	stakingAmount: integer('staking_amount'),
+	status: text('status', { enum: INVITATION_STATUS }).notNull().default('PENDING'),
+	gameId: integer('game_id').references(() => gamesTable.id),
+	inviteCode: text('invite_code').notNull(),
+	expiresAt: text('expires_at').default(sql`(CURRENT_TIMESTAMP)`),
 	...timestamps
 });
 

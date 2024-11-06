@@ -1,13 +1,27 @@
-import { CatRpsSchema } from '$lib/formSchema.js';
-import { gameHistoryTable, statsTable, tournamentsTable } from '$lib/server/db/schema.js';
+import { BASE_URL } from '$env/static/private';
+import { CatRpsSchema, PwfRpsSchema } from '$lib/formSchema.js';
+import {
+	friendGameInvitationsTable,
+	gameHistoryTable,
+	statsTable,
+	tournamentsTable,
+	usersTable
+} from '$lib/server/db/schema.js';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { sql, and, eq } from 'drizzle-orm';
+import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import { message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
+import { nanoid } from 'nanoid';
+
+type Schema = typeof import('$lib/server/db/schema');
+
 export const load = async () => {
 	const catForm = await superValidate(zod(CatRpsSchema));
+	const pwfForm = await superValidate(zod(PwfRpsSchema));
 	return {
-		catForm
+		catForm,
+		pwfForm
 	};
 };
 
@@ -74,7 +88,6 @@ export const actions = {
 		redirect(303, '/rps');
 	},
 	cat: async ({ locals: { db, user }, request }) => {
-		console.log('🚀 ~ cat: ~ user:', user);
 		if (!user) error(401, 'Unauthorized');
 		const form = await superValidate(request, zod(CatRpsSchema));
 		const { data, valid } = form;
@@ -95,5 +108,58 @@ export const actions = {
 			.get();
 		console.log('🚀 ~ cat: ~ res:', res);
 		return message(form, res);
+	},
+	pwf: async ({ locals: { db, user }, request }) => {
+		if (!user) error(401, 'Unauthorized');
+		const form = await superValidate(request, zod(PwfRpsSchema));
+		const { data, valid } = form;
+		if (!valid) return fail(400, { form });
+		const friendUser = await db
+			.select()
+			.from(usersTable)
+			.where(eq(usersTable.email, data.friendEmail))
+			.get();
+		if (!friendUser) {
+			return fail(404, { message: 'Friend username not found' });
+		}
+		const existingInvitation = await db
+			.select()
+			.from(friendGameInvitationsTable)
+			.where(
+				and(
+					eq(friendGameInvitationsTable.initiatorId, user.id),
+					eq(friendGameInvitationsTable.invitedUserId, friendUser.id),
+					eq(friendGameInvitationsTable.status, 'PENDING')
+				)
+			)
+			.get();
+		if (existingInvitation) {
+			return fail(409, { message: 'Pending invitation already exists' });
+		}
+		const inviteCode = nanoid();
+		// Set expiration to 24 hours from now
+		try {
+			const res = await db
+				.insert(friendGameInvitationsTable)
+				.values({
+					initiatorId: user.id,
+					invitedUserId: friendUser.id,
+					stakingAmount: data.stakingAmount,
+					status: 'PENDING',
+					gameId: 4,
+					inviteCode: inviteCode
+				})
+				.returning()
+				.get();
+
+			console.log('🚀 ~ pwf: ~ res:', res);
+			// Step 5: Generate shareable link
+			const shareableLink = `${BASE_URL}/invite/${inviteCode}`;
+
+			return { success: true, message: 'Invitation sent successfully', shareableLink };
+		} catch (err) {
+			console.error('Error creating game invitation:', err);
+			return fail(500, { message: 'Internal Server Error' });
+		}
 	}
 };

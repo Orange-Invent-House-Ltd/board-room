@@ -26,6 +26,12 @@ declare global {
 			cf: CfProperties;
 			ctx: ExecutionContext;
 		}
+		namespace Superforms {
+			type Message = {
+				type: 'error' | 'success';
+				text: string;
+			};
+		}
 	}
 }
 

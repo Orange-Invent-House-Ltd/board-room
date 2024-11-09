@@ -111,7 +111,7 @@ export const friendGameInvitationsTable = sqliteTable('friend_game_invitations',
 	status: text('status', { enum: INVITATION_STATUS }).notNull().default('PENDING'),
 	gameId: integer('game_id').references(() => gamesTable.id),
 	inviteCode: text('invite_code').notNull(),
-	expiresAt: text('expires_at').default(sql`(CURRENT_TIMESTAMP)`),
+
 	...timestamps
 });
 

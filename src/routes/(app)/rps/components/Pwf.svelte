@@ -14,18 +14,31 @@
 	}: {
 		pwfForm: SuperValidated<Infer<typeof PwfRpsSchema>>;
 	} = $props();
+	let showDrawer = $state(false);
 
 	const form = superForm(pwfForm, {
-		validators: zodClient(PwfRpsSchema)
+		validators: zodClient(PwfRpsSchema),
+		onUpdated: async ({ form }) => {
+			if (form.message?.type === 'success') {
+				showDrawer = true;
+			}
+		}
 	});
 
-	const { enhance, delayed, form: formData } = form;
+	const { enhance, delayed, form: formData, message } = form;
 </script>
 
 <div class="mb-10 min-h-screen bg-black text-white">
+	{#if $message?.type === 'error'}
+		<div
+			class="w-full rounded-md p-2 capitalize font-medium bg-red-100 text-red-500 border-2 border-red-500"
+		>
+			{$message.text}
+		</div>
+	{/if}
 	<h1 class="mb-6 text-2xl font-medium">Play With Friend</h1>
 
-	<form method="POST" class="space-y-4" use:enhance>
+	<form method="POST" action="/rps/play-with-friend/?/pwf" class="space-y-4" use:enhance>
 		<Form.Field {form} name="friendEmail">
 			<Form.Control let:attrs>
 				<Form.Label>Friend's email</Form.Label>
@@ -64,6 +77,6 @@
 				>
 			{/if}
 		</div>
-		<InviteDrawer />
+		<InviteDrawer open={showDrawer} code={$message?.text} />
 	</form>
 </div>

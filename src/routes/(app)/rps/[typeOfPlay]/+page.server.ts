@@ -106,7 +106,6 @@ export const actions = {
 			})
 			.returning()
 			.get();
-		console.log('🚀 ~ cat: ~ res:', res);
 		return message(form, res);
 	},
 	pwf: async ({ locals: { db, user }, request }) => {
@@ -120,7 +119,7 @@ export const actions = {
 			.where(eq(usersTable.email, data.friendEmail))
 			.get();
 		if (!friendUser) {
-			return fail(404, { message: 'Friend username not found' });
+			return message(form, { type: 'error', text: 'Friend username not found' });
 		}
 		const existingInvitation = await db
 			.select()
@@ -134,12 +133,12 @@ export const actions = {
 			)
 			.get();
 		if (existingInvitation) {
-			return fail(409, { message: 'Pending invitation already exists' });
+			return message(form, { type: 'error', text: 'Pending invitation already exists' });
 		}
 		const inviteCode = nanoid();
 		// Set expiration to 24 hours from now
 		try {
-			const res = await db
+			await db
 				.insert(friendGameInvitationsTable)
 				.values({
 					initiatorId: user.id,
@@ -152,14 +151,11 @@ export const actions = {
 				.returning()
 				.get();
 
-			console.log('🚀 ~ pwf: ~ res:', res);
-			// Step 5: Generate shareable link
-			const shareableLink = `${BASE_URL}/invite/${inviteCode}`;
-
-			return { success: true, message: 'Invitation sent successfully', shareableLink };
+			return message(form, { type: 'success', text: inviteCode });
+			// return { success: true, message: 'Invitation sent successfully', inviteCode };
 		} catch (err) {
 			console.error('Error creating game invitation:', err);
-			return fail(500, { message: 'Internal Server Error' });
+			return message(form, { text: 'internal serval error', type: 'error' });
 		}
 	}
 };

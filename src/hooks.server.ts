@@ -15,7 +15,7 @@ const preloadFonts: Handle = async ({ event, resolve }) => {
 	return response;
 };
 
-export const handleDb: Handle = async ({ event, resolve }) => {
+const handleDb: Handle = async ({ event, resolve }) => {
 	// Initialize database client
 	const platform = event.platform;
 	if (platform) {
@@ -26,7 +26,7 @@ export const handleDb: Handle = async ({ event, resolve }) => {
 	return resolve(event);
 };
 
-export const handleAuth: Handle = async ({ event, resolve }) => {
+const handleAuth: Handle = async ({ event, resolve }) => {
 	if (!event.locals.db) {
 		console.error('Database not initialized');
 		return resolve(event);

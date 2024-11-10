@@ -1,4 +1,3 @@
-import { db } from '$lib/server/db/index.js';
 import { usersTable } from '$lib/server/db/schema.js';
 import { redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';

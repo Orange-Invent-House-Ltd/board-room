@@ -2,8 +2,9 @@
 	import * as Drawer from '$lib/components/ui/drawer';
 	import * as Avatar from '$lib/components/ui/avatar';
 	import { Button } from '$lib/components/ui/button';
-	import { X } from 'lucide-svelte';
+	import { X, Copy, CopyCheck } from 'lucide-svelte';
 	import { page } from '$app/stores';
+	let clicked = $state(false);
 </script>
 
 <Drawer.Root>
@@ -24,7 +25,20 @@
 				<Avatar.Image src={$page.data.userWithStats.picture} alt={$page.data.userWithStats.name} />
 				<Avatar.Fallback>CN</Avatar.Fallback>
 			</Avatar.Root>
-			<h2 class="text-xl font-semibold">{$page.data.userWithStats.name}</h2>
+			<h2 class="text-xl flex items-center gap-2 font-semibold">
+				{$page.data.userWithStats.username}
+				{#if clicked}
+					<CopyCheck class="size-4" />
+				{:else}
+					<Copy
+						class="size-4"
+						onclick={() => {
+							navigator.clipboard.writeText($page.data.userWithStats.username);
+							clicked = true;
+						}}
+					/>
+				{/if}
+			</h2>
 		</div>
 
 		<div class="space-y-4">

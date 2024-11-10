@@ -116,10 +116,13 @@ export const actions = {
 		const friendUser = await db
 			.select()
 			.from(usersTable)
-			.where(eq(usersTable.email, data.friendEmail))
+			.where(eq(usersTable.username, data.username))
 			.get();
 		if (!friendUser) {
 			return message(form, { type: 'error', text: 'Friend username not found' });
+		}
+		if (friendUser.username === user.username) {
+			return message(form, { type: 'error', text: 'You cannot invite yourself' });
 		}
 		const existingInvitation = await db
 			.select()

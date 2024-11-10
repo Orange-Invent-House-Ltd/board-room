@@ -39,10 +39,10 @@
 	<h1 class="mb-6 text-2xl font-medium">Play With Friend</h1>
 
 	<form method="POST" action="/rps/play-with-friend/?/pwf" class="space-y-4" use:enhance>
-		<Form.Field {form} name="friendEmail">
+		<Form.Field {form} name="username">
 			<Form.Control let:attrs>
 				<Form.Label>Friend's email</Form.Label>
-				<Input {...attrs} bind:value={$formData.friendEmail} placeholder="e.g Beast_Mode" />
+				<Input {...attrs} bind:value={$formData.username} placeholder="e.g Beast_Mode" />
 			</Form.Control>
 			<Form.FieldErrors />
 		</Form.Field>

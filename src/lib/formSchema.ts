@@ -62,7 +62,7 @@ export const CatRpsSchema = z
 		}
 	);
 export const PwfRpsSchema = z.object({
-	friendEmail: z.string().email(),
+	username: z.string().min(5),
 	stakingAmount: z.number().int().optional()
 });
 

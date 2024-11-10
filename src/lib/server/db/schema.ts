@@ -21,6 +21,7 @@ export const usersTable = sqliteTable('users', {
 	xHandle: text('x_handle'),
 	instagramHandle: text('instagram_handle'),
 	facebookHandle: text('facebook_handle'),
+	username: text('username').unique().notNull(),
 	...timestamps
 });
 

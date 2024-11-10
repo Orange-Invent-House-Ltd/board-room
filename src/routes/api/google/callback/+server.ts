@@ -39,7 +39,7 @@ export async function GET(event: RequestEvent): Promise<Response> {
 
 	const claims = decodeIdToken(tokens.idToken()) as GoogleClaims;
 	const googleUserId = claims.sub;
-	const username = claims.name;
+	const username = claims.given_name;
 	const email = claims.email;
 	const picture = claims.picture;
 

@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { usersTable, type User } from '../db/schema';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import { nanoid } from 'nanoid';
 type Schema = typeof import('../db/schema');
 
 export async function createUser(
@@ -10,13 +11,15 @@ export async function createUser(
 	picture: string,
 	db: DrizzleD1Database<Schema>
 ): Promise<User> {
+	const nano = nanoid(5);
 	const user = await db
 		.insert(usersTable)
 		.values({
 			googleId,
 			email,
 			name,
-			picture
+			picture,
+			username: '@' + name + nano
 		})
 		.returning()
 		.get();

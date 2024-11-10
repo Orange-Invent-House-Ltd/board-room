@@ -1,6 +1,5 @@
 <script lang="ts">
 	import * as Drawer from '$lib/components/ui/drawer';
-	import * as Avatar from '$lib/components/ui/avatar';
 	import { Button } from '$lib/components/ui/button';
 	import { X } from 'lucide-svelte';
 	import Input from '../ui/input/input.svelte';
@@ -23,7 +22,14 @@
 			<p class="font-medium uppercase">invite link</p>
 			<p class="text-center">Copy the invite link below and share with your opponent</p>
 			<Input value={code} disabled />
-			<Button variant="outline" class="mt-6 w-full rounded-full bg-[#3574F5]">Copy link</Button>
+			<Button
+				variant="outline"
+				onclick={() => {
+					navigator.clipboard.writeText(code);
+					open = false;
+				}}
+				class="mt-6 w-full rounded-full bg-[#3574F5]">Copy link</Button
+			>
 		</div>
 	</Drawer.Content>
 </Drawer.Root>

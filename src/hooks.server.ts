@@ -40,7 +40,6 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 	}
 
 	const { session, user } = await validateSessionToken(token, event.locals.db);
-	console.log('🚀 ~ consthandleAuth:Handle= ~ user:', user);
 	if (session !== null) {
 		setSessionTokenCookie(event, token, session.expiresAt);
 	} else {

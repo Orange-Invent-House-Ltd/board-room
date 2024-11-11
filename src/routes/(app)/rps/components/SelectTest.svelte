@@ -45,7 +45,7 @@
 			</Select.Root>
 		</Form.Control>
 		<Form.Description>
-			You can manage email address in your <a href="/examples/forms">email settings</a>.
+			You can manage email address in your yes <a href="/examples/forms">email settings</a>.
 		</Form.Description>
 		<Form.FieldErrors />
 	</Form.Field>

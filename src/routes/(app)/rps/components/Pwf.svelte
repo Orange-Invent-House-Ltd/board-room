@@ -18,6 +18,8 @@
 
 	const form = superForm(pwfForm, {
 		validators: zodClient(PwfRpsSchema),
+		applyAction: true,
+
 		onUpdated: async ({ form }) => {
 			if (form.message?.type === 'success') {
 				showDrawer = true;
@@ -41,7 +43,7 @@
 	<form method="POST" action="/rps/play-with-friend/?/pwf" class="space-y-4" use:enhance>
 		<Form.Field {form} name="username">
 			<Form.Control let:attrs>
-				<Form.Label>Friend's email</Form.Label>
+				<Form.Label>Friend's username</Form.Label>
 				<Input {...attrs} bind:value={$formData.username} placeholder="e.g Beast_Mode" />
 			</Form.Control>
 			<Form.FieldErrors />

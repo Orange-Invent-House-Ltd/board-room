@@ -3,6 +3,8 @@ import { CatRpsSchema, PwfRpsSchema } from '$lib/formSchema.js';
 import {
 	friendGameInvitationsTable,
 	gameHistoryTable,
+	notificationsTable,
+	participantsTable,
 	statsTable,
 	tournamentsTable,
 	usersTable
@@ -102,10 +104,15 @@ export const actions = {
 				status: 'LIVE',
 				fee: data.fee,
 				gameId: 4,
-				userId: user.id
+				userId: user.id,
+				numberOfRounds: data.numberOfRounds
 			})
 			.returning()
 			.get();
+		await db.insert(participantsTable).values({
+			userId: user.id,
+			tournamentId: res.id
+		});
 		return message(form, res);
 	},
 	pwf: async ({ locals: { db, user }, request }) => {
@@ -119,7 +126,7 @@ export const actions = {
 			.where(eq(usersTable.username, data.username))
 			.get();
 		if (!friendUser) {
-			return message(form, { type: 'error', text: 'Friend username not found' });
+			return message(form, { type: 'error', text: "Friend's username not found" });
 		}
 		if (friendUser.username === user.username) {
 			return message(form, { type: 'error', text: 'You cannot invite yourself' });
@@ -150,6 +157,16 @@ export const actions = {
 					status: 'PENDING',
 					gameId: 4,
 					inviteCode: inviteCode
+				})
+				.returning()
+				.get();
+			await db
+				.insert(notificationsTable)
+				.values({
+					message: `${user.username} is inviting you to a rps game`,
+					receiverId: friendUser.id,
+					senderId: user.id,
+					inviteCode
 				})
 				.returning()
 				.get();

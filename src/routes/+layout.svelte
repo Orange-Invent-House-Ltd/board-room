@@ -24,7 +24,7 @@
 	<main class=" h-full min-h-svh">
 		{@render children()}
 	</main>
-	{#if !['/login', '/chess', '/uno', '/rps', '/checkers'].some( (path) => $page.url.pathname.startsWith(path) )}
+	{#if !['/login', '/chess', '/uno', '/rps', '/checkers', '/tournament/'].some( (path) => $page.url.pathname.startsWith(path) )}
 		<Footer />
 	{/if}
 </div>

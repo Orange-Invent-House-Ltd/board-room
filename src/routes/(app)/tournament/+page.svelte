@@ -1,10 +1,36 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import * as Tabs from '$lib/components/ui/tabs';
 	import { Filter } from 'lucide-svelte';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+	import * as Tabs from '$lib/components/ui/tabs';
+	import { queryParam, ssp } from 'sveltekit-search-params';
+	import { cn } from '$lib/utils';
+
+	const gameId = queryParam('gameId', ssp.number());
 
 	const { data } = $props();
+	let games = $state([
+		{
+			name: 'chess',
+			id: 1
+		},
+		{
+			name: 'uno',
+			id: 2
+		},
+		{
+			name: 'ludo',
+			id: 3
+		},
+		{
+			name: 'rps',
+			id: 4
+		},
+		{
+			name: 'checkers',
+			id: 5
+		}
+	]);
 </script>
 
 <div class="flex items-center justify-between gap-5">
@@ -26,17 +52,29 @@
 <div
 	class="my-6 flex w-full items-center justify-between rounded-3xl bg-[#2E2E30] px-4 py-3 text-sm"
 >
-	<p class="h-fit w-fit rounded-2xl bg-blue-600 px-2 py-1 text-white">All</p>
-	<p class="h-fit w-fit rounded-2xl px-2 py-1 text-white">Chess</p>
-	<p class="h-fit w-fit rounded-2xl px-2 py-1 text-white">Uno</p>
-	<p class="h-fit w-fit rounded-2xl px-2 py-1 text-white">Ludo</p>
-	<p class="h-fit w-fit rounded-2xl px-2 py-1 text-white">Rps</p>
-	<p class="h-fit w-fit rounded-2xl px-2 py-1 text-white">Checkers</p>
+	<button
+		onclick={() => {
+			$gameId = 0;
+		}}
+		class={cn('h-fit w-fit rounded-2xl  px-2 py-1 text-white', {
+			'bg-blue-600': !$gameId
+		})}>All</button
+	>
+	{#each games as game}
+		<button
+			onclick={() => {
+				$gameId = game.id;
+			}}
+			class={cn('h-fit w-fit rounded-2xl  px-2 py-1 text-white', {
+				'bg-blue-600': $gameId === game.id
+			})}>{game.name}</button
+		>
+	{/each}
 </div>
 
 <div class="space-y-4">
 	{#each data.tournaments as tournament}
-		<div class="rounded-md border border-[#AFAFAF] p-4">
+		<a href={`/tournament/${tournament.id}`} class="rounded-md border block border-[#AFAFAF] p-4">
 			<div class="mb-2 flex justify-between text-sm font-medium">
 				<p>{tournament.name}</p>
 				<p>(#){tournament.fee}</p>
@@ -51,12 +89,12 @@
 			</p>
 			<div class="mb-2 flex items-center justify-between text-xs text-[#AFAFAF]">
 				<p class="flex items-center gap-5">
-					<img src="/lock.svg" alt="" />
+					<img src="/unLock.svg" alt="" />
 					<span class="font-medium">{tournament.type}</span>
 				</p>
 				<p>{tournament.currentPlayers} users joined</p>
 			</div>
-		</div>
+		</a>
 	{:else}
 		<div class="text-center">
 			<p class="mb-1 text-base font-medium">No tournaments available yet!</p>

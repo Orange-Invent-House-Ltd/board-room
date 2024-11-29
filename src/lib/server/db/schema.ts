@@ -146,14 +146,19 @@ export const tournamentsTable = sqliteTable('tournaments', {
 	currentPlayers: integer('current_players').default(0),
 	userId: integer('user_id').references(() => usersTable.id),
 	fee: integer('fee').default(0).notNull(),
+	numberOfRounds: integer('number_of_rounds'),
 	...timestamps
 });
 
 export const participantsTable = sqliteTable(
 	'participants',
 	{
-		tournamentId: integer('tournament_id').references(() => tournamentsTable.id),
-		userId: integer('user_id').references(() => usersTable.id),
+		tournamentId: integer('tournament_id')
+			.references(() => tournamentsTable.id)
+			.notNull(),
+		userId: integer('user_id')
+			.references(() => usersTable.id)
+			.notNull(),
 		points: integer('points').default(0),
 		wins: integer('wins').default(0),
 		draws: integer('draws').default(0),
@@ -180,3 +185,47 @@ export const matches = sqliteTable('matches', {
 	status: text('status', { enum: ['SCHEDULED', 'LIVE', 'COMPLETED'] }).default('SCHEDULED'),
 	...timestamps
 });
+
+export const notificationsTable = sqliteTable('notifications', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	senderId: integer('sender_id').references(() => usersTable.id),
+	receiverId: integer('receiver_id').references(() => usersTable.id),
+	message: text('message'),
+	readStatus: integer('read_status', { mode: 'boolean' }).default(false),
+	inviteCode: text('invite_code'),
+	...timestamps
+});
+
+export const notificationsRelations = relations(notificationsTable, ({ one }) => ({
+	sender: one(usersTable, {
+		fields: [notificationsTable.senderId],
+		references: [usersTable.id]
+	}),
+	receiver: one(usersTable, {
+		fields: [notificationsTable.receiverId],
+		references: [usersTable.id]
+	})
+}));
+
+export const tournamentsRelations = relations(tournamentsTable, ({ one, many }) => ({
+	game: one(gamesTable, {
+		fields: [tournamentsTable.gameId],
+		references: [gamesTable.id]
+	}),
+	creator: one(usersTable, {
+		fields: [tournamentsTable.userId],
+		references: [usersTable.id]
+	}),
+	participants: many(participantsTable)
+}));
+
+export const participantsRelations = relations(participantsTable, ({ one }) => ({
+	tournament: one(tournamentsTable, {
+		fields: [participantsTable.tournamentId],
+		references: [tournamentsTable.id]
+	}),
+	user: one(usersTable, {
+		fields: [participantsTable.userId],
+		references: [usersTable.id]
+	})
+}));

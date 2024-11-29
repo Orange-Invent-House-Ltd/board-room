@@ -11,9 +11,18 @@
 		type: string;
 		fee: number;
 		maxPlayers: number;
+		numberOfRounds: number;
 	};
 
-	let { open = $bindable(), maxPlayers, name, duration, type, fee }: Props = $props();
+	let {
+		open = $bindable(),
+		maxPlayers,
+		name,
+		duration,
+		type,
+		fee,
+		numberOfRounds
+	}: Props = $props();
 </script>
 
 <Drawer.Root bind:open>
@@ -52,6 +61,10 @@
 				<div class="flex items-center justify-between">
 					<p>Tournament duration</p>
 					<p>{duration}</p>
+				</div>
+				<div class="flex items-center justify-between">
+					<p>Number of rounds</p>
+					<p>{numberOfRounds}</p>
 				</div>
 				<div class="flex items-center justify-between">
 					<p>Tournament type</p>

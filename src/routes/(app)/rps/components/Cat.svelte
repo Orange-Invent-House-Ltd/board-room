@@ -27,7 +27,7 @@
 			const { message } = form;
 			if (message) {
 				openDrawer = true;
-				tournamentInformation = message as Tournament;
+				tournamentInformation = message as unknown as Tournament;
 			}
 		}
 	});
@@ -95,6 +95,14 @@
 		<Form.FieldErrors />
 	</Form.Field>
 
+	<Form.Field {form} name="numberOfRounds">
+		<Form.Control let:attrs>
+			<Form.Label>Number of rounds</Form.Label>
+			<Input {...attrs} type="number" bind:value={$formData.numberOfRounds} />
+		</Form.Control>
+		<Form.Description>NOTE: Rounds must be an odd number e.g 1,3,5,7</Form.Description>
+		<Form.FieldErrors />
+	</Form.Field>
 	<Form.Field {form} name="fee">
 		<Form.Control let:attrs>
 			<Form.Label>Tournament fee</Form.Label>

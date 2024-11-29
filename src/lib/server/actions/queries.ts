@@ -6,7 +6,8 @@ export async function getTournaments(event: ServerLoadEvent) {
 	} = event;
 
 	const tournaments = await db.query.tournamentsTable.findMany({
-		orderBy: (t, { desc }) => desc(t.createdAt)
+		orderBy: (t, { desc }) => desc(t.createdAt),
+		where: (t, { eq }) => eq(t.type, 'public')
 	});
 	return {
 		tournaments

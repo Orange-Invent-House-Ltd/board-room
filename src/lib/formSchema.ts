@@ -47,7 +47,8 @@ export const CatRpsSchema = z
 			.min(2, 'Minimum players is 2')
 			.max(10, 'Maximum players is 10'),
 		duration: z.number().int().min(1, 'Duration is required'),
-		fee: z.number().int().optional()
+		fee: z.number().int().optional(),
+		numberOfRounds: z.number().positive()
 	})
 	.refine(
 		(data) => {

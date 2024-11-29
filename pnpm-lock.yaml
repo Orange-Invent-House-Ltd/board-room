@@ -59,6 +59,9 @@ importers:
       svelte-chessground:
         specifier: ^2.0.3
         version: 2.0.3(svelte@5.1.3)
+      sveltekit-search-params:
+        specifier: ^3.0.0
+        version: 3.0.0(@sveltejs/kit@2.7.3(@sveltejs/vite-plugin-svelte@4.0.0(svelte@5.1.3)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0)))(svelte@5.1.3)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0)))(svelte@5.1.3)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0))
       sveltekit-superforms:
         specifier: ^2.20.0
         version: 2.20.0(@sveltejs/kit@2.7.3(@sveltejs/vite-plugin-svelte@4.0.0(svelte@5.1.3)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0)))(svelte@5.1.3)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0)))(@types/json-schema@7.0.15)(svelte@5.1.3)(typescript@5.6.3)
@@ -129,9 +132,6 @@ importers:
       svelte-check:
         specifier: ^4.0.5
         version: 4.0.5(picomatch@4.0.2)(svelte@5.1.3)(typescript@5.6.3)
-      sveltekit-search-params:
-        specifier: ^2.1.2
-        version: 2.1.2(@sveltejs/kit@2.7.3(@sveltejs/vite-plugin-svelte@4.0.0(svelte@5.1.3)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0)))(svelte@5.1.3)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0)))(svelte@5.1.3)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0))
       tailwind-merge:
         specifier: ^2.5.4
         version: 2.5.4
@@ -3714,8 +3714,8 @@ packages:
     resolution: {integrity: sha512-Sl8UFHlBvF54aK8MElFvyvaUfPE2REOz6LnhR2pBClCL11MU4qpn4V+KgAggaXxDyrP2iQixvHbtpHqL/zXlSQ==}
     engines: {node: '>=18'}
 
-  sveltekit-search-params@2.1.2:
-    resolution: {integrity: sha512-wh5WSo46wz48MdWvpchVGrOjoDmbmsNJ7dUToSZ4L1SQ2LOasmTjAAlFhfG/EFvEhR34phRzLF7BjE0ZHzx1Uw==}
+  sveltekit-search-params@3.0.0:
+    resolution: {integrity: sha512-wq1Yo5zITev8ty9CWGmHgvAh+Xb3mCUewyUmvCdv6MJWi+/aZ4o79Y6SjuduDL0Cfd/KYHkqt4f/wQ4FtokSdw==}
     peerDependencies:
       '@sveltejs/kit': ^1.0.0 || ^2.0.0
       svelte: ^3.55.0 || ^4.0.0 || ^5.0.0
@@ -7671,7 +7671,7 @@ snapshots:
       magic-string: 0.30.12
       zimmerframe: 1.1.2
 
-  sveltekit-search-params@2.1.2(@sveltejs/kit@2.7.3(@sveltejs/vite-plugin-svelte@4.0.0(svelte@5.1.3)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0)))(svelte@5.1.3)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0)))(svelte@5.1.3)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0)):
+  sveltekit-search-params@3.0.0(@sveltejs/kit@2.7.3(@sveltejs/vite-plugin-svelte@4.0.0(svelte@5.1.3)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0)))(svelte@5.1.3)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0)))(svelte@5.1.3)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0)):
     dependencies:
       '@sveltejs/kit': 2.7.3(@sveltejs/vite-plugin-svelte@4.0.0(svelte@5.1.3)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0)))(svelte@5.1.3)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0))
       '@sveltejs/vite-plugin-svelte': 3.1.2(svelte@5.1.3)(vite@5.4.10(@types/node@22.8.1)(terser@5.36.0))

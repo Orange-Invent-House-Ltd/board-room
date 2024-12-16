@@ -64,7 +64,14 @@ export const CatRpsSchema = z
 	);
 export const PwfRpsSchema = z.object({
 	username: z.string().min(5),
-	stakingAmount: z.number().int().optional()
+	stakingAmount: z.number().int().optional(),
+	numberOfRounds: z
+		.number()
+		.int()
+		.min(1, 'Number of rounds is required')
+		.max(100, 'Maximum number of rounds is 100')
+		.refine((val) => val % 2 !== 0, 'Number of rounds must be an odd number'),
+
 });
 
 export type PlayWithFriendFormData = z.infer<typeof playWithFriendSchema>;

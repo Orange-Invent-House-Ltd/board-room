@@ -49,6 +49,14 @@
 			<Form.FieldErrors />
 		</Form.Field>
 
+		<Form.Field {form} name="numberOfRounds">
+			<Form.Control let:attrs>
+				<Form.Label>Number of rounds</Form.Label>
+				<Input {...attrs} type="number" bind:value={$formData.numberOfRounds} />
+			</Form.Control>
+			<Form.FieldErrors />
+		</Form.Field>
+
 		<Form.Field {form} name="stakingAmount">
 			<Form.Control let:attrs>
 				<Form.Label>Staking amount ₦</Form.Label>

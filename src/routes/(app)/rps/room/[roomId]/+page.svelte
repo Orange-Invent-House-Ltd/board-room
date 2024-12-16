@@ -5,18 +5,20 @@
 	import * as Avatar from '$lib/components/ui/avatar';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { enhance } from '$app/forms';
-
+let {data} = $props()
 	// State variables
-	let won = $state(0);
-	let lost = $state(0);
-	let draw = $state(0);
-	let userChoice: string | null = $state(null);
-	let opponentChoice: string | null = $state(null);
-	let resultMessage: string | null = $state(null);
-	let subMessage = $state('');
-	let userIconBounce = $state(false);
-	let opponentIconBounce = $state(false);
-
+	// State variables
+let won = $state(0);
+let lost = $state(0);
+let draw = $state(0);
+let roundsPlayed = $state(0);
+const totalRounds = data.friendGame.numberOfRounds;
+let userChoice: string | null = $state(null);
+let opponentChoice: string | null = $state(null);
+let resultMessage: string | null = $state(null);
+let subMessage = $state('');
+let userIconBounce = $state(false);
+let opponentIconBounce = $state(false);
 	// Generate a unique ID for each player
 	const playerId = crypto.randomUUID();
 	const roomId = $page.params.roomId;
@@ -62,39 +64,77 @@
 	}
 
 	// Calculate game result
-	function calculateResult() {
-		// Reset bounce animations
-		userIconBounce = false;
-		opponentIconBounce = false;
+	// Calculate game result
+function calculateResult() {
+    // Reset bounce animations
+    userIconBounce = false;
+    opponentIconBounce = false;
+    roundsPlayed += 1;
 
-		if (userChoice === opponentChoice) {
-			draw += 1;
-			resultMessage = `It's a draw!`;
-			subMessage = `Both players chose ${userChoice}`;
-		} else if (
-			(userChoice === 'rock' && opponentChoice === 'scissors') ||
-			(userChoice === 'paper' && opponentChoice === 'rock') ||
-			(userChoice === 'scissors' && opponentChoice === 'paper')
-		) {
-			won += 1;
-			resultMessage = `You win!`;
-			subMessage = `${userChoice} beats ${opponentChoice}`;
-		} else {
-			lost += 1;
-			resultMessage = `You lose!`;
-			subMessage = `${opponentChoice} beats ${userChoice}`;
-		}
+    if (userChoice === opponentChoice) {
+        draw += 1;
+        resultMessage = `It's a draw!`;
+        subMessage = `Both players chose ${userChoice}`;
+    } else if (
+        (userChoice === 'rock' && opponentChoice === 'scissors') ||
+        (userChoice === 'paper' && opponentChoice === 'rock') ||
+        (userChoice === 'scissors' && opponentChoice === 'paper')
+    ) {
+        won += 1;
+        resultMessage = `You win!`;
+        subMessage = `${userChoice} beats ${opponentChoice}`;
+    } else {
+        lost += 1;
+        resultMessage = `You lose!`;
+        subMessage = `${opponentChoice} beats ${userChoice}`;
+    }
 
-		// Reset game state after 3 seconds
-		setTimeout(() => {
-			userChoice = null;
-			opponentChoice = null;
-			resultMessage = null;
-			subMessage = null;
-		}, 3000);
-	}
+    // Check if the game has reached the total number of rounds
+    if (roundsPlayed >= totalRounds) {
+        setTimeout(() => determineOverallWinner(), 3000);
+    } else {
+        // Reset game state after 3 seconds
+        setTimeout(() => {
+            userChoice = null;
+            opponentChoice = null;
+            resultMessage = null;
+            subMessage = null;
+        }, 3000);
+    }
+}
+// Determine overall winner
+function determineOverallWinner() {
+    let overallResult;
+    if (won > lost) {
+        overallResult = 'win';
+    } else if (lost > won) {
+        overallResult = 'lose';
+    } else {
+        overallResult = 'draw';
+    }
+
+    // Log the result to the database
+    fetch('/api/rps/logResult', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ roomId, overallResult, won, lost, draw })
+    });
+
+    // Reset state
+    won = 0;
+    lost = 0;
+    draw = 0;
+    roundsPlayed = 0;
+    userChoice = null;
+    opponentChoice = null;
+    resultMessage = `Overall Result: ${overallResult}`;
+    subMessage = `Won: ${won}, Lost: ${lost}, Draw: ${draw}`;
+}
+
 </script>
-
+{data.friendGame.numberOfRounds}
 <div class="game">
 	<div class="flex w-full items-center justify-between">
 		<div class="text-center text-lg font-semibold">

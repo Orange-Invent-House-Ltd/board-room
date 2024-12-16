@@ -16,6 +16,7 @@
 	let timeLeft = tournamentInfo.timeLeft;
 	let { data } = $props();
 	console.log('🚀 ~ data:', data.participant);
+	console.log('🚀 ~ data:', data.tournament);
 </script>
 
 <div>
@@ -31,16 +32,46 @@
 		<h2 class="mb-6 font-medium">Tournament Info</h2>
 
 		<div class="space-y-4">
-			{#each Object.entries(data.tournament) as [key, value]}
 				<div class="flex items-center justify-between">
 					<span class="text-sm"
-						>{key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}</span
+						>Game mode</span
 					>
 					<span class="text-sm font-semibold">
-						{key === 'timeLeft' ? timeLeft : value}
+						{data.tournament.name}
 					</span>
 				</div>
-			{/each}
+				<div class="flex items-center justify-between">
+					<span class="text-sm"
+						>Game Duration</span
+					>
+					<span class="text-sm font-semibold">
+						{data.tournament.duration}
+					</span>
+				</div>
+				<div class="flex items-center justify-between">
+					<span class="text-sm"
+						>Game Type</span
+					>
+					<span class="text-sm font-semibold">
+						{data.tournament.type}
+					</span>
+				</div>
+				<div class="flex items-center justify-between">
+					<span class="text-sm"
+						>Game Members</span
+					>
+					<span class="text-sm font-semibold">
+						{data.tournament.maxPlayers} players
+					</span>
+				</div>
+				<div class="flex items-center justify-between">
+					<span class="text-sm"
+						>Time left</span
+					>
+					<span class="text-sm font-semibold">
+						10:00:00
+					</span>
+				</div>
 		</div>
 	</div>
 
@@ -59,7 +90,7 @@
 			<Table.Body>
 				<Table.Row>
 					<Table.Cell class="flex w-full  items-center gap-1 truncate font-medium">
-						<img src={participant.user.picture} class="size-10" alt="" />
+						<img src={participant.user.picture} class="size-10" alt="profile pic" />
 						<p class="text-xs font-medium">{participant.user.username}</p>
 					</Table.Cell>
 					<Table.Cell class="text-sm font-medium text-white">{participant.points}</Table.Cell>
@@ -73,14 +104,21 @@
 		<div
 			class="w-full text-center capitalize h-20 flex items-center justify-center text-muted-foreground"
 		>
-			no participants yet
+			No participants yet
 		</div>
 	{/each}
 	{#if !data.participant}
 		<form
-			use:enhance
+			use:enhance={()=>{
+				return async ({update,result})=>{
+					await update()
+					console.log(result)
+
+
+				}
+			}}
 			method="POST"
-			action={`?/abortGame`}
+			action={`?/joinTournament`}
 			class="sticky bottom-0 flex gap-5 left-0 mt-8 w-full border-t border-gray-700 bg-black px-5 py-5"
 		>
 			<Button type="submit" class="w-full rounded-full bg-blue-600 py-3 text-white"

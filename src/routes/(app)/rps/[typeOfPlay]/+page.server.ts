@@ -156,7 +156,8 @@ export const actions = {
 					stakingAmount: data.stakingAmount,
 					status: 'PENDING',
 					gameId: 4,
-					inviteCode: inviteCode
+					inviteCode: inviteCode,
+					numberOfRounds: data.numberOfRounds
 				})
 				.returning()
 				.get();

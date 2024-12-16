@@ -112,6 +112,7 @@ export const friendGameInvitationsTable = sqliteTable('friend_game_invitations',
 	status: text('status', { enum: INVITATION_STATUS }).notNull().default('PENDING'),
 	gameId: integer('game_id').references(() => gamesTable.id),
 	inviteCode: text('invite_code').notNull(),
+	numberOfRounds: integer('number_of_rounds').notNull().default(1),
 
 	...timestamps
 });
@@ -143,7 +144,7 @@ export const tournamentsTable = sqliteTable('tournaments', {
 	startTime: integer('start_time', { mode: 'timestamp' }),
 	endTime: integer('end_time', { mode: 'timestamp' }),
 	status: text('status', { enum: ['UPCOMING', 'LIVE', 'COMPLETED'] }).notNull(),
-	currentPlayers: integer('current_players').default(0),
+	currentPlayers: integer('current_players').default(0).notNull(),
 	userId: integer('user_id').references(() => usersTable.id),
 	fee: integer('fee').default(0).notNull(),
 	numberOfRounds: integer('number_of_rounds'),
@@ -196,6 +197,21 @@ export const notificationsTable = sqliteTable('notifications', {
 	...timestamps
 });
 
+export const participantPairsTable = sqliteTable('participant_pairs', {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    tournamentId: integer('tournament_id')
+        .references(() => tournamentsTable.id)
+        .notNull(),
+    participantOneId: integer('participant_one_id')
+        .references(() => participantsTable.userId)
+        .notNull(),
+    participantTwoId: integer('participant_two_id')
+        .references(() => participantsTable.userId)
+        .notNull(),
+    round: integer('round').notNull().default(1), // To track which round the pair is for
+    ...timestamps
+});
+
 export const notificationsRelations = relations(notificationsTable, ({ one }) => ({
 	sender: one(usersTable, {
 		fields: [notificationsTable.senderId],
@@ -228,4 +244,20 @@ export const participantsRelations = relations(participantsTable, ({ one }) => (
 		fields: [participantsTable.userId],
 		references: [usersTable.id]
 	})
+}));
+
+
+export const participantPairsRelations = relations(participantPairsTable, ({ one }) => ({
+    tournament: one(tournamentsTable, {
+        fields: [participantPairsTable.tournamentId],
+        references: [tournamentsTable.id]
+    }),
+    participantOne: one(participantsTable, {
+        fields: [participantPairsTable.participantOneId],
+        references: [participantsTable.userId]
+    }),
+    participantTwo: one(participantsTable, {
+        fields: [participantPairsTable.participantTwoId],
+        references: [participantsTable.userId]
+    })
 }));

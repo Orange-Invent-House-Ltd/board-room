@@ -1,12 +1,12 @@
 import { sql } from 'drizzle-orm';
 import { sqliteTable, text, integer, primaryKey } from 'drizzle-orm/sqlite-core';
 import { relations, type InferSelectModel } from 'drizzle-orm';
-import { GAME_STATUS, INVITATION_STATUS, TOURNAMENT_TYPE } from '../../constants';
+import { GAME_STATUS, INVITATION_STATUS, OPPONENT_TYPE, TOURNAMENT_TYPE } from '../../constants';
 
 // Example schema - modify according to your needs
 export const timestamps = {
-	createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
-	updatedAt: text('updated_at').$onUpdate(() => sql`(CURRENT_TIMESTAMP)`)
+	createdAt: integer('created_at', { mode: 'timestamp' }).$default(() => new Date()),
+	updatedAt: integer('updated_at', { mode: 'timestamp' }).$onUpdate(() => new Date())
 };
 export function array<T>() {
 	return text('', { mode: 'json' }).$type<T[]>();
@@ -61,27 +61,7 @@ export const statsTable = sqliteTable(
 		pk: primaryKey({ columns: [table.userId, table.gameId] })
 	})
 );
-// User relations
-export const userRelations = relations(usersTable, ({ many }) => ({
-	stats: many(statsTable)
-}));
 
-// Game relations
-export const gamesRelations = relations(gamesTable, ({ many }) => ({
-	stats: many(statsTable)
-}));
-
-// Stats relations
-export const statsRelations = relations(statsTable, ({ one }) => ({
-	game: one(gamesTable, {
-		fields: [statsTable.gameId],
-		references: [gamesTable.id]
-	}),
-	user: one(usersTable, {
-		fields: [statsTable.userId],
-		references: [usersTable.id]
-	})
-}));
 export const gameHistoryTable = sqliteTable('game_history', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	gameId: integer('game_id')
@@ -93,7 +73,7 @@ export const gameHistoryTable = sqliteTable('game_history', {
 	// Nullable for computer opponent
 	playerTwoId: integer('player_two_id').references(() => usersTable.id),
 	// true for computer opponent
-	isComputerOpponent: integer('is_computer_opponent', { mode: 'boolean' }).notNull().default(false),
+	opponentType: text('opponent_type', { enum: OPPONENT_TYPE }).notNull(),
 	winner: integer('winner').references(() => usersTable.id),
 	status: text('status', { enum: GAME_STATUS }).notNull().default('IN_PROGRESS'),
 	stakingAmount: integer('staking_amount'),
@@ -166,7 +146,7 @@ export const participantsTable = sqliteTable(
 		losses: integer('losses').default(0),
 		joinedAt: integer('joined_at', { mode: 'timestamp' })
 			.notNull()
-			.default(sql`CURRENT_TIMESTAMP`),
+			.$default(() => new Date()),
 		...timestamps
 	},
 	(table) => ({
@@ -198,18 +178,18 @@ export const notificationsTable = sqliteTable('notifications', {
 });
 
 export const participantPairsTable = sqliteTable('participant_pairs', {
-    id: integer('id').primaryKey({ autoIncrement: true }),
-    tournamentId: integer('tournament_id')
-        .references(() => tournamentsTable.id)
-        .notNull(),
-    participantOneId: integer('participant_one_id')
-        .references(() => participantsTable.userId)
-        .notNull(),
-    participantTwoId: integer('participant_two_id')
-        .references(() => participantsTable.userId)
-        .notNull(),
-    round: integer('round').notNull().default(1), // To track which round the pair is for
-    ...timestamps
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	tournamentId: integer('tournament_id')
+		.references(() => tournamentsTable.id)
+		.notNull(),
+	participantOneId: integer('participant_one_id')
+		.references(() => participantsTable.userId)
+		.notNull(),
+	participantTwoId: integer('participant_two_id')
+		.references(() => participantsTable.userId)
+		.notNull(),
+	round: integer('round').notNull().default(1), // To track which round the pair is for
+	...timestamps
 });
 
 export const notificationsRelations = relations(notificationsTable, ({ one }) => ({
@@ -246,18 +226,17 @@ export const participantsRelations = relations(participantsTable, ({ one }) => (
 	})
 }));
 
-
 export const participantPairsRelations = relations(participantPairsTable, ({ one }) => ({
-    tournament: one(tournamentsTable, {
-        fields: [participantPairsTable.tournamentId],
-        references: [tournamentsTable.id]
-    }),
-    participantOne: one(participantsTable, {
-        fields: [participantPairsTable.participantOneId],
-        references: [participantsTable.userId]
-    }),
-    participantTwo: one(participantsTable, {
-        fields: [participantPairsTable.participantTwoId],
-        references: [participantsTable.userId]
-    })
+	tournament: one(tournamentsTable, {
+		fields: [participantPairsTable.tournamentId],
+		references: [tournamentsTable.id]
+	}),
+	participantOne: one(participantsTable, {
+		fields: [participantPairsTable.participantOneId],
+		references: [participantsTable.userId]
+	}),
+	participantTwo: one(participantsTable, {
+		fields: [participantPairsTable.participantTwoId],
+		references: [participantsTable.userId]
+	})
 }));

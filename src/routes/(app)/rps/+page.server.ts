@@ -16,17 +16,17 @@ export const actions = {
 		const ghc = await db
 			.insert(gameHistoryTable)
 			.values({
-				gameId: 4,
+				gameName: 'rps',
 				playerOneId: user?.id,
-				isComputerOpponent: true
+				opponentType: 'COMPUTER'
 			})
 			.returning()
 			.get()
-			.catch(() => {
-				error(500, 'Something went wrong');
+			.catch((e) => {
+				error(500, 'Something went wrong', e);
 			});
 
-		redirect(303, `${href}?gh=${ghc.id}`);
+		redirect(303, `${href}?gameHistoryId=${ghc.id}`);
 	},
 	redirect: async ({ locals: { user }, request }) => {
 		if (!user) return;

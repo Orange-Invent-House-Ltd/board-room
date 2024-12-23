@@ -9,16 +9,16 @@ export const POST = async ({ locals: { db, user }, request }) => {
 	if (!user) error(401, 'Unauthorized');
 	try {
 		// First get the game state
-		const game = await db.query.gameHistoryTable.findFirst({
+		const gameHistory = await db.query.gameHistoryTable.findFirst({
 			where: and(eq(gameHistoryTable.id, gameHistoryId), eq(gameHistoryTable.status, 'IN_PROGRESS'))
 		});
 
-		if (!game) {
+		if (!gameHistory) {
 			error(400, 'Game not found or already finished');
 		}
 
 		// Verify user is part of the game
-		if (game.playerOneId !== user.id && game.playerTwoId !== user.id) {
+		if (gameHistory.playerOneId !== user.id && gameHistory.playerTwoId !== user.id) {
 			error(400, 'User not part of this game');
 		}
 
@@ -28,11 +28,12 @@ export const POST = async ({ locals: { db, user }, request }) => {
 			.update(gameHistoryTable)
 			.set({
 				status: 'COMPLETED',
-				winner: winner ? user.id : null
+				winner: winner ? user.id : null,
+				result: winner ? 'WIN' : draw ? 'DRAW' : 'LOSE'
 			})
-			.where(eq(gameHistoryTable.id, game.id));
+			.where(eq(gameHistoryTable.id, gameHistoryId));
 		// Prepare the increment values based on winner and draw
-		const lostIncrement = winner ? 0 : 1;
+		const lostIncrement = winner ? 0 : draw ? 0 : 1;
 		const wonIncrement = winner ? 1 : 0;
 		const drawIncrement = draw ? 1 : 0;
 
@@ -40,8 +41,8 @@ export const POST = async ({ locals: { db, user }, request }) => {
 		const res = await db
 			.insert(statsTable)
 			.values({
-				gameId: 4,
-				globalRanking: 1000,
+				gameName: 'rps',
+				globalRanking: 1000 + rankingChange,
 				userId: user.id,
 				gamesPlayed: 1,
 				gamesLost: lostIncrement,
@@ -49,7 +50,7 @@ export const POST = async ({ locals: { db, user }, request }) => {
 				gamesDrawn: drawIncrement
 			})
 			.onConflictDoUpdate({
-				target: [statsTable.userId, statsTable.gameId],
+				target: [statsTable.userId, statsTable.gameName],
 				set: {
 					gamesPlayed: sql`games_played + 1`,
 					gamesLost: sql`games_lost + ${lostIncrement}`,
@@ -60,7 +61,6 @@ export const POST = async ({ locals: { db, user }, request }) => {
 			})
 			.returning()
 			.get();
-		console.log('🚀 ~ POST ~ res:', res);
 	} catch (err) {
 		console.log('🚀 ~ abortGame: ~ error:', err);
 		error(500, 'something went wrong');

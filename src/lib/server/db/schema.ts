@@ -1,13 +1,19 @@
 import { sql } from 'drizzle-orm';
 import { sqliteTable, text, integer, primaryKey } from 'drizzle-orm/sqlite-core';
 import { relations, type InferSelectModel } from 'drizzle-orm';
-import { GAME_STATUS, INVITATION_STATUS, OPPONENT_TYPE, TOURNAMENT_TYPE } from '../../constants';
+import {
+	GAME_STATUS,
+	INVITATION_STATUS,
+	OPPONENT_TYPE,
+	TOURNAMENT_TYPE,
+	GAME_RESULT
+} from '../../constants';
 
-// Example schema - modify according to your needs
 export const timestamps = {
 	createdAt: integer('created_at', { mode: 'timestamp' }).$default(() => new Date()),
 	updatedAt: integer('updated_at', { mode: 'timestamp' }).$onUpdate(() => new Date())
 };
+
 export function array<T>() {
 	return text('', { mode: 'json' }).$type<T[]>();
 }
@@ -34,11 +40,9 @@ export const sessionTable = sqliteTable('session', {
 		mode: 'timestamp'
 	}).notNull()
 });
-export type User = InferSelectModel<typeof usersTable>;
-export type Session = InferSelectModel<typeof sessionTable>;
+
 export const gamesTable = sqliteTable('games', {
-	id: integer('id').primaryKey({ autoIncrement: true }),
-	name: text('name').notNull().unique()
+	name: text('name').notNull().primaryKey()
 });
 
 export const statsTable = sqliteTable(
@@ -47,9 +51,9 @@ export const statsTable = sqliteTable(
 		userId: integer('user_id')
 			.notNull()
 			.references(() => usersTable.id),
-		gameId: integer('game_id')
+		gameName: text('game_name')
 			.notNull()
-			.references(() => gamesTable.id),
+			.references(() => gamesTable.name),
 		globalRanking: integer('global_ranking').notNull(),
 		gamesPlayed: integer('games_played').notNull().default(0),
 		gamesWon: integer('games_won').notNull().default(0),
@@ -58,28 +62,27 @@ export const statsTable = sqliteTable(
 		...timestamps
 	},
 	(table) => ({
-		pk: primaryKey({ columns: [table.userId, table.gameId] })
+		pk: primaryKey({ columns: [table.userId, table.gameName] })
 	})
 );
 
 export const gameHistoryTable = sqliteTable('game_history', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
-	gameId: integer('game_id')
+	gameName: text('game_name')
 		.notNull()
-		.references(() => gamesTable.id),
+		.references(() => gamesTable.name, { onDelete: 'cascade' }),
 	playerOneId: integer('player_one_id')
 		.notNull()
-		.references(() => usersTable.id),
-	// Nullable for computer opponent
+		.references(() => usersTable.id, { onDelete: 'cascade' }),
 	playerTwoId: integer('player_two_id').references(() => usersTable.id),
-	// true for computer opponent
 	opponentType: text('opponent_type', { enum: OPPONENT_TYPE }).notNull(),
 	winner: integer('winner').references(() => usersTable.id),
 	status: text('status', { enum: GAME_STATUS }).notNull().default('IN_PROGRESS'),
+	result: text('result', { enum: GAME_RESULT }),
 	stakingAmount: integer('staking_amount'),
 	...timestamps
 });
-// Friend game invitations table
+
 export const friendGameInvitationsTable = sqliteTable('friend_game_invitations', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	initiatorId: integer('initiator_id')
@@ -90,14 +93,14 @@ export const friendGameInvitationsTable = sqliteTable('friend_game_invitations',
 		.references(() => usersTable.id),
 	stakingAmount: integer('staking_amount'),
 	status: text('status', { enum: INVITATION_STATUS }).notNull().default('PENDING'),
-	gameId: integer('game_id').references(() => gamesTable.id),
+	gameName: text('game_name')
+		.notNull()
+		.references(() => gamesTable.name, { onDelete: 'cascade' }),
 	inviteCode: text('invite_code').notNull(),
 	numberOfRounds: integer('number_of_rounds').notNull().default(1),
-
 	...timestamps
 });
 
-// For storing moves within a game
 export const movesTable = sqliteTable('moves', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	gameHistoryId: integer('game_history_id')
@@ -106,7 +109,6 @@ export const movesTable = sqliteTable('moves', {
 	playerId: integer('player_id')
 		.notNull()
 		.references(() => usersTable.id),
-	// Store move as JSON to support different game move types
 	move: text('move').notNull(),
 	roundNumber: integer('round_number').notNull().default(1),
 	...timestamps
@@ -115,8 +117,8 @@ export const movesTable = sqliteTable('moves', {
 export const tournamentsTable = sqliteTable('tournaments', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	name: text('name').notNull(),
-	gameId: integer('game_id')
-		.references(() => gamesTable.id)
+	gameName: text('game_name')
+		.references(() => gamesTable.name, { onDelete: 'cascade' })
 		.notNull(),
 	duration: integer('duration').notNull(),
 	type: text('type', { enum: TOURNAMENT_TYPE }).notNull(),
@@ -124,8 +126,10 @@ export const tournamentsTable = sqliteTable('tournaments', {
 	startTime: integer('start_time', { mode: 'timestamp' }),
 	endTime: integer('end_time', { mode: 'timestamp' }),
 	status: text('status', { enum: ['UPCOMING', 'LIVE', 'COMPLETED'] }).notNull(),
-	currentPlayers: integer('current_players').default(0).notNull(),
-	userId: integer('user_id').references(() => usersTable.id),
+	currentPlayers: integer('current_players').default(1).notNull(),
+	userId: integer('user_id')
+		.references(() => usersTable.id, { onDelete: 'cascade' })
+		.notNull(),
 	fee: integer('fee').default(0).notNull(),
 	numberOfRounds: integer('number_of_rounds'),
 	...timestamps
@@ -135,10 +139,10 @@ export const participantsTable = sqliteTable(
 	'participants',
 	{
 		tournamentId: integer('tournament_id')
-			.references(() => tournamentsTable.id)
+			.references(() => tournamentsTable.id, { onDelete: 'cascade' })
 			.notNull(),
 		userId: integer('user_id')
-			.references(() => usersTable.id)
+			.references(() => usersTable.id, { onDelete: 'cascade' })
 			.notNull(),
 		points: integer('points').default(0),
 		wins: integer('wins').default(0),
@@ -156,8 +160,12 @@ export const participantsTable = sqliteTable(
 
 export const matches = sqliteTable('matches', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
-	tournamentId: integer('tournament_id').references(() => tournamentsTable.id),
-	player1Id: integer('player_1_id').references(() => usersTable.id),
+	tournamentId: integer('tournament_id')
+		.references(() => tournamentsTable.id, { onDelete: 'cascade' })
+		.notNull(),
+	player1Id: integer('player_1_id')
+		.references(() => usersTable.id, { onDelete: 'cascade' })
+		.notNull(),
 	player2Id: integer('player_2_id').references(() => usersTable.id),
 	winnerId: integer('winner_id').references(() => usersTable.id),
 	result: text('result', { enum: ['WIN', 'DRAW', 'ONGOING'] }),
@@ -180,17 +188,39 @@ export const notificationsTable = sqliteTable('notifications', {
 export const participantPairsTable = sqliteTable('participant_pairs', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	tournamentId: integer('tournament_id')
-		.references(() => tournamentsTable.id)
+		.references(() => tournamentsTable.id, { onDelete: 'cascade' })
 		.notNull(),
 	participantOneId: integer('participant_one_id')
-		.references(() => participantsTable.userId)
+		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
 	participantTwoId: integer('participant_two_id')
-		.references(() => participantsTable.userId)
+		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
-	round: integer('round').notNull().default(1), // To track which round the pair is for
+	round: integer('round').notNull().default(1),
 	...timestamps
 });
+
+// Relations
+export const userRelations = relations(usersTable, ({ many }) => ({
+	stats: many(statsTable)
+}));
+
+export const gamesRelations = relations(gamesTable, ({ many }) => ({
+	stats: many(statsTable),
+	tournaments: many(tournamentsTable),
+	gameHistory: many(gameHistoryTable)
+}));
+
+export const statsRelations = relations(statsTable, ({ one }) => ({
+	game: one(gamesTable, {
+		fields: [statsTable.gameName],
+		references: [gamesTable.name]
+	}),
+	user: one(usersTable, {
+		fields: [statsTable.userId],
+		references: [usersTable.id]
+	})
+}));
 
 export const notificationsRelations = relations(notificationsTable, ({ one }) => ({
 	sender: one(usersTable, {
@@ -205,8 +235,8 @@ export const notificationsRelations = relations(notificationsTable, ({ one }) =>
 
 export const tournamentsRelations = relations(tournamentsTable, ({ one, many }) => ({
 	game: one(gamesTable, {
-		fields: [tournamentsTable.gameId],
-		references: [gamesTable.id]
+		fields: [tournamentsTable.gameName],
+		references: [gamesTable.name]
 	}),
 	creator: one(usersTable, {
 		fields: [tournamentsTable.userId],
@@ -240,3 +270,6 @@ export const participantPairsRelations = relations(participantPairsTable, ({ one
 		references: [participantsTable.userId]
 	})
 }));
+
+export type User = InferSelectModel<typeof usersTable>;
+export type Session = InferSelectModel<typeof sessionTable>;

@@ -37,7 +37,7 @@
 				body: JSON.stringify({
 					winner: false,
 					draw: true,
-					gameHistoryId: $page.url.searchParams.get('gh')
+					gameHistoryId: $page.url.searchParams.get('gameHistoryId')
 				})
 			});
 			resultMessage = `It's a draw`;
@@ -52,7 +52,10 @@
 			subMessage = ` ${userChoice} beats ${computerChoice}`;
 			await fetch('/api/rps/plw', {
 				method: 'POST',
-				body: JSON.stringify({ winner: true, gameHistoryId: $page.url.searchParams.get('gh') })
+				body: JSON.stringify({
+					winner: true,
+					gameHistoryId: $page.url.searchParams.get('gameHistoryId')
+				})
 			});
 		} else {
 			lost += 1;
@@ -60,7 +63,10 @@
 			subMessage = ` ${computerChoice} beats ${userChoice}`;
 			await fetch('/api/rps/plw', {
 				method: 'POST',
-				body: JSON.stringify({ winner: false, gameHistoryId: $page.url.searchParams.get('gh') })
+				body: JSON.stringify({
+					winner: false,
+					gameHistoryId: $page.url.searchParams.get('gameHistoryId')
+				})
 			});
 		}
 	}
@@ -126,7 +132,7 @@
 			action={`?/abortGame`}
 			class="sticky bottom-0 left-0 mt-8 w-full border-t border-gray-700 bg-black px-5 py-5"
 		>
-			<input type="text" name="gh" value={$page.url.searchParams.get('gh')} hidden />
+			<input type="text" name="gh" value={$page.url.searchParams.get('gameHistoryId')} hidden />
 			<Button type="submit" class="w-full rounded-full bg-blue-600 py-3 text-white"
 				>Abort game</Button
 			>

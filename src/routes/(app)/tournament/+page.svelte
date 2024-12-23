@@ -4,7 +4,7 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import { queryParam, ssp } from 'sveltekit-search-params';
-	import { cn } from '$lib/utils';
+	import { cn, formatNaira } from '$lib/utils';
 
 	const gameId = queryParam('gameId', ssp.number());
 
@@ -76,8 +76,8 @@
 	{#each data.tournaments as tournament}
 		<a href={`/tournament/${tournament.id}`} class="rounded-md border block border-[#AFAFAF] p-4">
 			<div class="mb-2 flex justify-between text-sm font-medium">
-				<p>{tournament.name}</p>
-				<p>(#){tournament.fee}</p>
+				<p class="capitalize">{tournament.name}</p>
+				<p>{formatNaira(tournament.fee)}</p>
 			</div>
 			<p class="mb-2 flex items-center gap-5 text-xs text-[#AFAFAF]">
 				<img src="/people.svg" alt="" />

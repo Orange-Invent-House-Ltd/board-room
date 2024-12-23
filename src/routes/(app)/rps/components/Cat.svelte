@@ -20,7 +20,7 @@
 	} = $props();
 
 	let openDrawer = $state(false);
-	let tournamentInformation: Tournament = $state();
+	let tournamentInformation: Tournament | null = $state(null);
 	const form = superForm(catForm, {
 		validators: zodClient(CatRpsSchema),
 		onUpdated: async ({ form }) => {
@@ -37,7 +37,7 @@
 		// Use Intl.NumberFormat to format the value as currency
 		return value.toLocaleString('en-US', {
 			style: 'currency',
-			currency: 'USD',
+			currency: 'NGN',
 			minimumFractionDigits: 2,
 			maximumFractionDigits: 2
 		});

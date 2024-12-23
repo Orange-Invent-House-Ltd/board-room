@@ -6,12 +6,12 @@
 	import { formatNaira } from '$lib/utils';
 	type Props = {
 		open: boolean;
-		name: string;
-		duration: number;
-		type: string;
-		fee: number;
-		maxPlayers: number;
-		numberOfRounds: number;
+		name?: string;
+		duration?: number;
+		type?: string;
+		fee?: number;
+		maxPlayers?: number;
+		numberOfRounds?: number | null;
 	};
 
 	let {
@@ -62,10 +62,12 @@
 					<p>Tournament duration</p>
 					<p>{duration}</p>
 				</div>
-				<div class="flex items-center justify-between">
-					<p>Number of rounds</p>
-					<p>{numberOfRounds}</p>
-				</div>
+				{#if numberOfRounds}
+					<div class="flex items-center justify-between">
+						<p>Number of rounds</p>
+						<p>{numberOfRounds}</p>
+					</div>
+				{/if}
 				<div class="flex items-center justify-between">
 					<p>Tournament type</p>
 					<p>{type}</p>

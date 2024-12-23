@@ -3,11 +3,12 @@ export const load = async (event) => {
 		locals: { db },
 		url
 	} = event;
-	const gameId = url.searchParams.get('gameId') as unknown as number;
+	const gameName = url.searchParams.get('gameName') as string;
+	console.log('🚀 ~ load ~ gameName:', gameName);
 	const tournaments = await db.query.tournamentsTable.findMany({
 		orderBy: (t, { desc }) => desc(t.createdAt),
 		where: (t, { eq, and }) =>
-			and(eq(t.type, 'public'), gameId > 0 ? eq(t.gameId, gameId) : undefined)
+			and(eq(t.type, 'public'), gameName ? eq(t.gameName, gameName) : undefined)
 	});
 	return {
 		tournaments

@@ -30,33 +30,34 @@ export const load = async () => {
 export const actions = {
 	abortGame: async ({ locals: { db, user }, request }) => {
 		const form = await request.formData();
-		const gameHistoryId = Number(form.get('gh'));
+		const gameHistoryId = Number(form.get('gameHistoryId'));
 		if (!user) error(401, 'Unauthorized');
 		if (!gameHistoryId) error(400, 'error');
 		try {
 			// First get the game state
-			const game = await db.query.gameHistoryTable.findFirst({
+			const gameHistory = await db.query.gameHistoryTable.findFirst({
 				where: and(
 					eq(gameHistoryTable.id, gameHistoryId),
 					eq(gameHistoryTable.status, 'IN_PROGRESS')
 				)
 			});
-
-			if (!game) {
+			console.log(gameHistory);
+			if (!gameHistory) {
 				error(400, 'Game not found or already finished');
 			}
 
 			// Verify user is part of the game
-			if (game.playerOneId !== user.id && game.playerTwoId !== user.id) {
+			if (gameHistory.playerOneId !== user.id && gameHistory.playerTwoId !== user.id) {
 				error(400, 'User not part of this game');
 			}
 
 			// Prepare winner based on conditions
-			const winner = game.isComputerOpponent
-				? null
-				: user.id === game.playerOneId
-					? game.playerTwoId
-					: game.playerOneId;
+			const winner =
+				gameHistory.opponentType === 'COMPUTER'
+					? null
+					: user.id === gameHistory.playerOneId
+						? gameHistory.playerTwoId
+						: gameHistory.playerOneId;
 
 			await db
 				.update(gameHistoryTable)
@@ -64,19 +65,19 @@ export const actions = {
 					status: 'ABORTED',
 					winner
 				})
-				.where(eq(gameHistoryTable.id, game.id));
+				.where(eq(gameHistoryTable.id, gameHistory.id));
 
 			await db
 				.insert(statsTable)
 				.values({
-					gameId: 4,
 					globalRanking: 1000,
 					userId: user.id,
 					gamesPlayed: 1,
-					gamesLost: 1
+					gamesLost: 1,
+					gameName: 'rps'
 				})
 				.onConflictDoUpdate({
-					target: [statsTable.userId, statsTable.gameId],
+					target: [statsTable.userId, statsTable.gameName],
 					set: {
 						gamesPlayed: sql`games_played + 1`,
 						gamesLost: sql`games_lost + 1`,
@@ -103,7 +104,7 @@ export const actions = {
 				maxPlayers: data.maximumPlayers,
 				status: 'LIVE',
 				fee: data.fee,
-				gameId: 4,
+				gameName: 'rps',
 				userId: user.id,
 				numberOfRounds: data.numberOfRounds
 			})
@@ -155,7 +156,7 @@ export const actions = {
 					invitedUserId: friendUser.id,
 					stakingAmount: data.stakingAmount,
 					status: 'PENDING',
-					gameId: 4,
+					gameName: 'rps',
 					inviteCode: inviteCode,
 					numberOfRounds: data.numberOfRounds
 				})

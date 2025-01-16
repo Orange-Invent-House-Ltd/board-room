@@ -7,7 +7,7 @@
 	type Props = {
 		open: boolean;
 		name?: string;
-		duration?: number;
+		startTime?: Date;
 		type?: string;
 		fee?: number;
 		maxPlayers?: number;
@@ -18,7 +18,7 @@
 		open = $bindable(),
 		maxPlayers,
 		name,
-		duration,
+		startTime,
 		type,
 		fee,
 		numberOfRounds
@@ -59,8 +59,15 @@
 					<p>{maxPlayers}</p>
 				</div>
 				<div class="flex items-center justify-between">
-					<p>Tournament duration</p>
-					<p>{duration}</p>
+					<p>Starts Time</p>
+					<p class="text-sm">
+						{startTime
+							? new Date(startTime).toLocaleString('en-US', {
+									dateStyle: 'full',
+									timeStyle: 'short'
+								})
+							: 'Not set'}
+					</p>
 				</div>
 				{#if numberOfRounds}
 					<div class="flex items-center justify-between">

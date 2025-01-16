@@ -6,7 +6,8 @@ import {
 	INVITATION_STATUS,
 	OPPONENT_TYPE,
 	TOURNAMENT_TYPE,
-	GAME_RESULT
+	GAME_RESULT,
+	NOTIFICATION_TYPE
 } from '../../constants';
 
 export const timestamps = {
@@ -42,7 +43,8 @@ export const sessionTable = sqliteTable('session', {
 });
 
 export const gamesTable = sqliteTable('games', {
-	name: text('name').notNull().primaryKey()
+	name: text('name').notNull().primaryKey(),
+	...timestamps
 });
 
 export const statsTable = sqliteTable(
@@ -120,10 +122,9 @@ export const tournamentsTable = sqliteTable('tournaments', {
 	gameName: text('game_name')
 		.references(() => gamesTable.name, { onDelete: 'cascade' })
 		.notNull(),
-	duration: integer('duration').notNull(),
 	type: text('type', { enum: TOURNAMENT_TYPE }).notNull(),
 	maxPlayers: integer('max_players').notNull(),
-	startTime: integer('start_time', { mode: 'timestamp' }),
+	startTime: integer('start_time', { mode: 'timestamp_ms' }).notNull(),
 	endTime: integer('end_time', { mode: 'timestamp' }),
 	status: text('status', { enum: ['UPCOMING', 'LIVE', 'COMPLETED'] }).notNull(),
 	currentPlayers: integer('current_players').default(1).notNull(),
@@ -132,6 +133,7 @@ export const tournamentsTable = sqliteTable('tournaments', {
 		.notNull(),
 	fee: integer('fee').default(0).notNull(),
 	numberOfRounds: integer('number_of_rounds'),
+	currentRound: integer('current_round').default(0).notNull(),
 	...timestamps
 });
 
@@ -148,6 +150,9 @@ export const participantsTable = sqliteTable(
 		wins: integer('wins').default(0),
 		draws: integer('draws').default(0),
 		losses: integer('losses').default(0),
+		buchholzScore: integer('buchholz_score').default(0),
+		opponentsPlayed: array<number>().$default(() => []),
+		hasReceivedBye: integer('has_received_bye', { mode: 'boolean' }).default(false),
 		joinedAt: integer('joined_at', { mode: 'timestamp' })
 			.notNull()
 			.$default(() => new Date()),
@@ -163,15 +168,19 @@ export const matches = sqliteTable('matches', {
 	tournamentId: integer('tournament_id')
 		.references(() => tournamentsTable.id, { onDelete: 'cascade' })
 		.notNull(),
+	roundNumber: integer('round_number').notNull(),
 	player1Id: integer('player_1_id')
 		.references(() => usersTable.id, { onDelete: 'cascade' })
 		.notNull(),
 	player2Id: integer('player_2_id').references(() => usersTable.id),
 	winnerId: integer('winner_id').references(() => usersTable.id),
-	result: text('result', { enum: ['WIN', 'DRAW', 'ONGOING'] }),
+	result: text('result', { enum: ['WIN', 'DRAW', 'ONGOING', 'BYE'] }).default('ONGOING'),
 	startTime: integer('start_time', { mode: 'timestamp' }),
 	endTime: integer('end_time', { mode: 'timestamp' }),
-	status: text('status', { enum: ['SCHEDULED', 'LIVE', 'COMPLETED'] }).default('SCHEDULED'),
+	status: text('status', { enum: ['SCHEDULED', 'READY', 'LIVE', 'COMPLETED'] }).default(
+		'SCHEDULED'
+	),
+	isBye: integer('is_bye', { mode: 'boolean' }).default(false),
 	...timestamps
 });
 
@@ -180,8 +189,10 @@ export const notificationsTable = sqliteTable('notifications', {
 	senderId: integer('sender_id').references(() => usersTable.id),
 	receiverId: integer('receiver_id').references(() => usersTable.id),
 	message: text('message'),
+
 	readStatus: integer('read_status', { mode: 'boolean' }).default(false),
 	inviteCode: text('invite_code'),
+	type: text('type', { enum: NOTIFICATION_TYPE }).notNull(),
 	...timestamps
 });
 
@@ -268,6 +279,17 @@ export const participantPairsRelations = relations(participantPairsTable, ({ one
 	participantTwo: one(participantsTable, {
 		fields: [participantPairsTable.participantTwoId],
 		references: [participantsTable.userId]
+	})
+}));
+
+export const friendGameInvitationsRelations = relations(friendGameInvitationsTable, ({ one }) => ({
+	initiator: one(usersTable, {
+		fields: [friendGameInvitationsTable.initiatorId],
+		references: [usersTable.id]
+	}),
+	invitedUser: one(usersTable, {
+		fields: [friendGameInvitationsTable.invitedUserId],
+		references: [usersTable.id]
 	})
 }));
 

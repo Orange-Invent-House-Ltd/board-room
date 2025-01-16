@@ -1,11 +1,28 @@
 import type { InferSelectModel } from 'drizzle-orm';
-import type { gamesTable, statsTable, tournamentsTable, usersTable } from './server/db/schema';
+import type {
+	gamesTable,
+	matches,
+	participantsTable,
+	statsTable,
+	tournamentsTable,
+	usersTable
+} from './server/db/schema';
 
 // Base table types
 export type User = InferSelectModel<typeof usersTable>;
 export type Game = InferSelectModel<typeof gamesTable>;
 export type Stats = InferSelectModel<typeof statsTable>;
 export type Tournament = InferSelectModel<typeof tournamentsTable>;
+export type Match = InferSelectModel<typeof matches>;
+export type MatchWithPlayer = Match & {
+	player1: User;
+	player2: User;
+};
+
+export type Participant = InferSelectModel<typeof participantsTable>;
+export type ParticipantWithUser = Participant & {
+	user: User;
+};
 
 // Type for stats with game info
 type StatWithGame = Stats & {
@@ -30,4 +47,27 @@ export type GoogleClaims = {
 	email_verified: boolean; // Whether the user's email address has been verified
 	locale: string; // The user's preferred locale
 	// Additional claims may be present depending on the requested scopes
+};
+
+export type TournamentMessage = {
+	type:
+		| 'JOIN_TOURNAMENT'
+		| 'MATCH_RESULT'
+		| 'PLAYER_READY'
+		| 'ROUND_START'
+		| 'ROUND_END'
+		| 'FORFEIT_MATCH'
+		| 'CHAT_MESSAGE'
+		| 'TOURNAMENT_START_COUNTDOWN'
+		| 'COUNTDOWN_UPDATE';
+	payload: any;
+};
+
+export type Message = {
+	id: string;
+	text: string;
+	userId: number;
+	username: string;
+	timestamp: number;
+	isMine: boolean;
 };

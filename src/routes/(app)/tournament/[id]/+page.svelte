@@ -15,8 +15,6 @@
 	};
 	let timeLeft = tournamentInfo.timeLeft;
 	let { data } = $props();
-	console.log('🚀 ~ data:', data.participant);
-	console.log('🚀 ~ data:', data.tournament);
 </script>
 
 <div>
@@ -32,65 +30,53 @@
 		<h2 class="mb-6 font-medium">Tournament Info</h2>
 
 		<div class="space-y-4">
-				<div class="flex items-center justify-between">
-					<span class="text-sm"
-						>Game mode</span
-					>
-					<span class="text-sm font-semibold">
-						{data.tournament.name}
-					</span>
-				</div>
-				<div class="flex items-center justify-between">
-					<span class="text-sm"
-						>Game Duration</span
-					>
-					<span class="text-sm font-semibold">
-						{data.tournament.duration}
-					</span>
-				</div>
-				<div class="flex items-center justify-between">
-					<span class="text-sm"
-						>Game Type</span
-					>
-					<span class="text-sm font-semibold">
-						{data.tournament.type}
-					</span>
-				</div>
-				<div class="flex items-center justify-between">
-					<span class="text-sm"
-						>Game Members</span
-					>
-					<span class="text-sm font-semibold">
-						{data.tournament.maxPlayers} players
-					</span>
-				</div>
-				<div class="flex items-center justify-between">
-					<span class="text-sm"
-						>Time left</span
-					>
-					<span class="text-sm font-semibold">
-						10:00:00
-					</span>
-				</div>
+			<div class="flex items-center justify-between">
+				<span class="text-sm">Game mode</span>
+				<span class="text-sm font-semibold">
+					{data.tournament.name}
+				</span>
+			</div>
+			<div class="flex items-center justify-between">
+				<span class="text-sm">Format</span>
+				<span class="text-sm font-semibold"> swiss system </span>
+			</div>
+			<div class="flex items-center justify-between">
+				<span class="text-sm">Tournament starts in</span>
+				<span class="text-sm font-semibold">
+					{data.tournament.duration}
+				</span>
+			</div>
+			<div class="flex items-center justify-between">
+				<span class="text-sm">Game Type</span>
+				<span class="text-sm font-semibold">
+					{data.tournament.type}
+				</span>
+			</div>
+			<div class="flex items-center justify-between">
+				<span class="text-sm">Game Members</span>
+				<span class="text-sm font-semibold">
+					{data.tournament.currentPlayers} / {data.tournament.maxPlayers} players
+				</span>
+			</div>
 		</div>
 	</div>
 
 	<h2 class="mb-4 mt-10 text-base font-medium">Current Leaderboard</h2>
-	{#each data.tournament.participants as participant}
-		<Table.Root>
-			<Table.Header>
-				<Table.Row class="text-[#C6C6C6]">
-					<Table.Head class="w-[100px] text-[#C6C6C6]">Player</Table.Head>
-					<Table.Head class="text-[#C6C6C6]">Rating</Table.Head>
-					<Table.Head class="text-[#C6C6C6]">Win</Table.Head>
-					<Table.Head class="text-[#C6C6C6]">Draw</Table.Head>
-					<Table.Head class="text-[#C6C6C6]">Lost</Table.Head>
-				</Table.Row>
-			</Table.Header>
+	<Table.Root>
+		<Table.Header>
+			<Table.Row class="text-[#C6C6C6]">
+				<Table.Head class="w-[100px] text-[#C6C6C6]">Player</Table.Head>
+				<Table.Head class="text-[#C6C6C6]">Rating</Table.Head>
+				<Table.Head class="text-[#C6C6C6]">Win</Table.Head>
+				<Table.Head class="text-[#C6C6C6]">Draw</Table.Head>
+				<Table.Head class="text-[#C6C6C6]">Lost</Table.Head>
+			</Table.Row>
+		</Table.Header>
+		{#each data.tournament.participants as participant}
 			<Table.Body>
 				<Table.Row>
 					<Table.Cell class="flex w-full  items-center gap-1 truncate font-medium">
-						<img src={participant.user.picture} class="size-10" alt="profile pic" />
+						<img src={participant.user.picture} class="size-10 rounded-full" alt="profile pic" />
 						<p class="text-xs font-medium">{participant.user.username}</p>
 					</Table.Cell>
 					<Table.Cell class="text-sm font-medium text-white">{participant.points}</Table.Cell>
@@ -99,23 +85,21 @@
 					<Table.Cell class="text-sm font-medium text-red-500">{participant.losses}</Table.Cell>
 				</Table.Row>
 			</Table.Body>
-		</Table.Root>
-	{:else}
-		<div
-			class="w-full text-center capitalize h-20 flex items-center justify-center text-muted-foreground"
-		>
-			No participants yet
-		</div>
-	{/each}
-	{#if !data.participant}
+		{:else}
+			<div
+				class="w-full text-center capitalize h-20 flex items-center justify-center text-muted-foreground"
+			>
+				No participants yet
+			</div>
+		{/each}
+	</Table.Root>
+	{#if !data.participant && data.isTournamentFull === false}
 		<form
-			use:enhance={()=>{
-				return async ({update,result})=>{
-					await update()
-					console.log(result)
-
-
-				}
+			use:enhance={() => {
+				return async ({ update, result }) => {
+					await update();
+					console.log(result);
+				};
 			}}
 			method="POST"
 			action={`?/joinTournament`}
@@ -128,5 +112,12 @@
 				>Watch tournament</Button
 			>
 		</form>
+	{/if}
+	{#if data.isTournamentFull === true}
+		<div
+			class="w-full text-center capitalize h-20 flex items-center justify-center text-muted-foreground"
+		>
+			Tournament is full
+		</div>
 	{/if}
 </div>

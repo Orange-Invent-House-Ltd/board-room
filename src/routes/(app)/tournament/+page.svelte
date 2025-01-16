@@ -6,31 +6,10 @@
 	import { queryParam, ssp } from 'sveltekit-search-params';
 	import { cn, formatNaira } from '$lib/utils';
 
-	const gameId = queryParam('gameId', ssp.number());
+	const gameName = queryParam('gameName', ssp.string());
 
 	const { data } = $props();
-	let games = $state([
-		{
-			name: 'chess',
-			id: 1
-		},
-		{
-			name: 'uno',
-			id: 2
-		},
-		{
-			name: 'ludo',
-			id: 3
-		},
-		{
-			name: 'rps',
-			id: 4
-		},
-		{
-			name: 'checkers',
-			id: 5
-		}
-	]);
+	console.log('🚀 ~ data:', data);
 </script>
 
 <div class="flex items-center justify-between gap-5">
@@ -49,24 +28,22 @@
 		</DropdownMenu.Content>
 	</DropdownMenu.Root>
 </div>
-<div
-	class="my-6 flex w-full items-center justify-between rounded-3xl bg-[#2E2E30] px-4 py-3 text-sm"
->
+<div class="my-6 flex w-full items-center gap-2 rounded-3xl bg-[#2E2E30] px-4 py-3 text-sm">
 	<button
 		onclick={() => {
-			$gameId = 0;
+			$gameName = null;
 		}}
 		class={cn('h-fit w-fit rounded-2xl  px-2 py-1 text-white', {
-			'bg-blue-600': !$gameId
+			'bg-blue-600': !$gameName
 		})}>All</button
 	>
-	{#each games as game}
+	{#each data.games as game}
 		<button
 			onclick={() => {
-				$gameId = game.id;
+				$gameName = game.name;
 			}}
 			class={cn('h-fit w-fit rounded-2xl  px-2 py-1 text-white', {
-				'bg-blue-600': $gameId === game.id
+				'bg-blue-600': $gameName === game.name
 			})}>{game.name}</button
 		>
 	{/each}

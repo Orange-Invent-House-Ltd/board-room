@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { pusherClient } from '$lib/pusher';
 	import { cn } from '$lib/utils';
 	import * as Avatar from '$lib/components/ui/avatar';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { enhance } from '$app/forms';
+	import { onDestroy, onMount } from 'svelte';
+	import { PUBLIC_SERVER_URL } from '$env/static/public';
 let {data} = $props()
 	// State variables
 	// State variables
@@ -19,49 +20,107 @@ let resultMessage: string | null = $state(null);
 let subMessage = $state('');
 let userIconBounce = $state(false);
 let opponentIconBounce = $state(false);
+let socket:WebSocket
+function setupWebSocket() {
+  socket = new WebSocket(`ws://${PUBLIC_SERVER_URL}/rps-room?roomId=${roomId}`);
+  
+  socket.onopen = () => {
+    console.log('Connected to game room');
+  };
+
+  socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    
+    switch (data.type) {
+      case 'player-assigned':
+        // You might want to store the player role
+        console.log(`Assigned as ${data.role}`);
+        break;
+
+      case 'game-ready':
+        // Both players are connected, game can start
+        resultMessage = "Game ready! Make your choice.";
+        break;
+
+      case 'opponent-choice-made':
+        opponentIconBounce = true;
+        resultMessage = "Opponent has made their choice!";
+        break;
+
+      case 'round-result':
+        opponentChoice = data.moves.player2; // Assuming you're player1
+        calculateResult();
+        break;
+
+      case 'player-disconnected':
+        resultMessage = "Opponent disconnected!";
+        // Handle disconnect - maybe disable controls
+        break;
+
+      case 'ping':
+        // Respond to heartbeat
+        socket.send(JSON.stringify({ type: 'pong' }));
+        break;
+
+      case 'game-over':
+        determineOverallWinner();
+        break;
+    }
+  };
+
+  socket.onerror = (error) => {
+    console.error('WebSocket error:', error);
+    resultMessage = "Connection error occurred!";
+  };
+
+  socket.onclose = () => {
+    console.log('Disconnected from the game');
+    resultMessage = "Disconnected from game";
+    // Maybe add reconnection logic here
+    setTimeout(setupWebSocket, 5000);
+  };
+}
+onMount(()=>{
+	setupWebSocket()
+	
+})
+async function playGame(choice: string) {
+  if (userChoice || !socket || socket.readyState !== WebSocket.OPEN) return;
+  
+  userChoice = choice;
+  userIconBounce = true;
+
+  socket.send(JSON.stringify({
+    type: 'player-move',
+    choice
+  }));
+
+  resultMessage = "Waiting for opponent...";
+}
+
+// Update onDestroy to clean up
+onDestroy(() => {
+  if (socket) {
+    socket.close();
+  }
+});
 	// Generate a unique ID for each player
-	const playerId = crypto.randomUUID();
 	const roomId = $page.params.roomId;
 
-	// Subscribe to the Pusher channel
-	$effect(() => {
-		if (!roomId) return;
-
-		const channel = pusherClient.subscribe(`rps-room-${roomId}`);
-
-		channel.bind('player-move', ({ player, choice }: { player: string; choice: string }) => {
-			// Update opponent's state if the move came from the other player
-			if (player !== playerId) {
-				opponentChoice = choice;
-				opponentIconBounce = true;
-
-				if (userChoice && opponentChoice) {
-					// Both players have played
-					setTimeout(() => calculateResult(), 3000);
-				}
-			}
-		});
-
-		return () => pusherClient.unsubscribe(`rps-room-${roomId}`);
-	});
-
+	
 	// Player makes a choice
-	async function playGame(choice: string) {
-		if (userChoice) return; // Prevent duplicate moves
-		userChoice = choice;
-		userIconBounce = true;
+	// async function playGame(choice: string) {
+	// 	if (userChoice) return; // Prevent duplicate moves
+	// 	userChoice = choice;
+	// 	userIconBounce = true;
 
-		// Send the move to the opponent
-		await fetch(`/api/rps/play`, {
-			method: 'POST',
-			body: JSON.stringify({ roomId, choice, playerId })
-		});
+	// 	socket.send(JSON.stringify({ type: 'player-move', choice }))
 
-		// Check if opponent has already played
-		if (opponentChoice) {
-			setTimeout(() => calculateResult(), 3000);
-		}
-	}
+	// 	// Check if opponent has already played
+	// 	if (opponentChoice) {
+	// 		setTimeout(() => calculateResult(), 3000);
+	// 	}
+	// }
 
 	// Calculate game result
 	// Calculate game result
@@ -114,13 +173,13 @@ function determineOverallWinner() {
     }
 
     // Log the result to the database
-    fetch('/api/rps/logResult', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ roomId, overallResult, won, lost, draw })
-    });
+    // fetch('/api/rps/logResult', {
+    //     method: 'POST',
+    //     headers: {
+    //         'Content-Type': 'application/json'
+    //     },
+    //     body: JSON.stringify({ roomId, overallResult, won, lost, draw })
+    // });
 
     // Reset state
     won = 0;

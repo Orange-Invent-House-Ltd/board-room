@@ -47,6 +47,9 @@
 		const unformattedValue = parseFloat(event.target.value.replace(/[^0-9.-]+/g, ''));
 		$formData.fee = formatCurrency(unformattedValue);
 	};
+	const now = new Date();
+	const minDateTime = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
+	// tournamentStartInput.setAttribute('min', minDateTime);
 </script>
 
 <h1 class="mb-10 text-2xl font-medium">Create a Tournament</h1>
@@ -87,22 +90,22 @@
 		</Form.Control>
 		<Form.FieldErrors />
 	</Form.Field>
-	<Form.Field {form} name="duration">
+	<Form.Field {form} name="startTime">
 		<Form.Control let:attrs>
-			<Form.Label>Tournament duration</Form.Label>
-			<Input {...attrs} type="number" bind:value={$formData.duration} />
+			<Form.Label>Tournament Starts Time</Form.Label>
+			<Input type="datetime-local" bind:value={$formData.startTime} {...attrs} />
 		</Form.Control>
 		<Form.FieldErrors />
 	</Form.Field>
 
-	<Form.Field {form} name="numberOfRounds">
+	<!-- <Form.Field {form} name="numberOfRounds">
 		<Form.Control let:attrs>
 			<Form.Label>Number of rounds</Form.Label>
 			<Input {...attrs} type="number" bind:value={$formData.numberOfRounds} />
 		</Form.Control>
 		<Form.Description>NOTE: Rounds must be an odd number e.g 1,3,5,7</Form.Description>
 		<Form.FieldErrors />
-	</Form.Field>
+	</Form.Field> -->
 	<Form.Field {form} name="fee">
 		<Form.Control let:attrs>
 			<Form.Label>Tournament fee</Form.Label>

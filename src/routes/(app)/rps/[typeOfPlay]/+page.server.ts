@@ -90,23 +90,25 @@ export const actions = {
 		}
 		redirect(303, '/rps');
 	},
-	cat: async ({ locals: { db, user }, request }) => {
+	cat: async ({ locals: { db, user }, request, fetch }) => {
 		if (!user) error(401, 'Unauthorized');
 		const form = await superValidate(request, zod(CatRpsSchema));
 		const { data, valid } = form;
 		if (!valid) return fail(400, { form });
+		const convertedDate = new Date(data.startTime);
+
+		const startTimeUnixSeconds = convertedDate.getTime();
 		const res = await db
 			.insert(tournamentsTable)
 			.values({
 				type: data.type,
-				duration: data.duration,
+				startTime: convertedDate,
 				name: data.name,
 				maxPlayers: data.maximumPlayers,
-				status: 'LIVE',
+				status: 'UPCOMING',
 				fee: data.fee,
 				gameName: 'rps',
-				userId: user.id,
-				numberOfRounds: data.numberOfRounds
+				userId: user.id
 			})
 			.returning()
 			.get();
@@ -114,9 +116,14 @@ export const actions = {
 			userId: user.id,
 			tournamentId: res.id
 		});
+		const info = await fetch('http://127.0.0.1:8787/tournament/initialize', {
+			method: 'POST',
+			body: JSON.stringify({ ...res, startTime: startTimeUnixSeconds })
+		});
+		console.log(await info.json());
 		return message(form, res);
 	},
-	pwf: async ({ locals: { db, user }, request }) => {
+	pwf: async ({ locals: { db, user }, request, fetch }) => {
 		if (!user) error(401, 'Unauthorized');
 		const form = await superValidate(request, zod(PwfRpsSchema));
 		const { data, valid } = form;
@@ -143,9 +150,9 @@ export const actions = {
 				)
 			)
 			.get();
-		if (existingInvitation) {
-			return message(form, { type: 'error', text: 'Pending invitation already exists' });
-		}
+		// if (existingInvitation) {
+		// 	return message(form, { type: 'error', text: 'Pending invitation already exists' });
+		// }
 		const inviteCode = nanoid();
 		// Set expiration to 24 hours from now
 		try {
@@ -162,16 +169,28 @@ export const actions = {
 				})
 				.returning()
 				.get();
-			await db
+			const n = await db
 				.insert(notificationsTable)
 				.values({
-					message: `${user.username} is inviting you to a rps game`,
+					message: `is inviting you to a rps game`,
 					receiverId: friendUser.id,
 					senderId: user.id,
-					inviteCode
+					inviteCode,
+					type: 'FRIEND_INVITATION'
 				})
 				.returning()
 				.get();
+			const notification = await db.query.notificationsTable.findFirst({
+				where: ({ id }) => eq(id, n.id),
+				with: {
+					sender: true
+				}
+			});
+			const r = await fetch('http://127.0.0.1:8787/send-notification', {
+				method: 'POST',
+				body: JSON.stringify({ notification })
+			});
+			console.log('this is from the do', r);
 
 			return message(form, { type: 'success', text: inviteCode });
 			// return { success: true, message: 'Invitation sent successfully', inviteCode };

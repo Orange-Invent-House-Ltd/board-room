@@ -45,10 +45,32 @@ export const CatRpsSchema = z
 			.number()
 			.int()
 			.min(2, 'Minimum players is 2')
-			.max(10, 'Maximum players is 10'),
-		duration: z.number().int().min(1, 'Duration is required'),
-		fee: z.number().int().optional(),
-		numberOfRounds: z.number().positive()
+			.max(10, 'Maximum players is 10')
+			.refine((value) => value % 2 === 0, {
+				message: 'Maximum players must be an even number'
+			}),
+		startTime: z
+			.string()
+			.refine(
+				(value) => {
+					const date = new Date(value);
+					return !isNaN(date.getTime());
+				},
+				{
+					message: 'Invalid date format'
+				}
+			)
+			.refine(
+				(value) => {
+					const date = new Date(value);
+					const now = new Date();
+					return date > now;
+				},
+				{
+					message: 'Start time must be in the future'
+				}
+			),
+		fee: z.number().int().optional()
 	})
 	.refine(
 		(data) => {
@@ -70,8 +92,7 @@ export const PwfRpsSchema = z.object({
 		.int()
 		.min(1, 'Number of rounds is required')
 		.max(100, 'Maximum number of rounds is 100')
-		.refine((val) => val % 2 !== 0, 'Number of rounds must be an odd number'),
-
+		.refine((val) => val % 2 !== 0, 'Number of rounds must be an odd number')
 });
 
 export type PlayWithFriendFormData = z.infer<typeof playWithFriendSchema>;

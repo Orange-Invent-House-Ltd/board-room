@@ -48,3 +48,7 @@ export async function getGameLeaderboard(db: DrizzleD1Database<Schema>, gameName
 // 		}
 // 	}
 // });
+
+export function calculateNumberOfRounds(playerCount: number): number {
+	return Math.ceil(Math.log2(playerCount));
+}

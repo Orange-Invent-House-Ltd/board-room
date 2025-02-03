@@ -1,8 +1,7 @@
 import { error } from '@sveltejs/kit';
 import { eq, and } from 'drizzle-orm';
 import { participantsTable, tournamentsTable, matches } from '$lib/server/db/schema';
-import { generatePairings, updateBuchholzScores } from '$lib/server/swiss-pairing';
-import type {  MatchWithPlayer } from '$lib/types.js';
+import type { MatchWithPlayer } from '$lib/types.js';
 
 export const load = async ({ locals: { db, user }, params }) => {
 	const id = Number(params.id);

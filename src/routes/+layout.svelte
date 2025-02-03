@@ -4,7 +4,7 @@
 	import '../app.css';
 	import NProgress from 'nprogress';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
-
+	import { Toaster } from '$lib/components/ui/sonner';
 	NProgress.configure({
 		showSpinner: false
 	});
@@ -19,6 +19,8 @@
 
 	let { children } = $props();
 </script>
+
+<Toaster richColors closeButton />
 
 <div class=" mx-auto max-w-md">
 	<main class=" h-full min-h-svh">

@@ -164,7 +164,7 @@ export const participantsTable = sqliteTable(
 );
 
 export const matches = sqliteTable('matches', {
-	id: integer('id').primaryKey({ autoIncrement: true }),
+	id: integer('id').primaryKey(),
 	tournamentId: integer('tournament_id')
 		.references(() => tournamentsTable.id, { onDelete: 'cascade' })
 		.notNull(),
@@ -292,6 +292,19 @@ export const friendGameInvitationsRelations = relations(friendGameInvitationsTab
 		references: [usersTable.id]
 	})
 }));
-
+export const matchesRelations = relations(matches, ({ one }) => ({
+	player1: one(usersTable, {
+		fields: [matches.player1Id],
+		references: [usersTable.id] // Must match the foreign key
+	}),
+	player2: one(usersTable, {
+		fields: [matches.player2Id],
+		references: [usersTable.id] // Must match the foreign key
+	}),
+	tournament: one(tournamentsTable, {
+		fields: [matches.tournamentId],
+		references: [tournamentsTable.id]
+	})
+}));
 export type User = InferSelectModel<typeof usersTable>;
 export type Session = InferSelectModel<typeof sessionTable>;

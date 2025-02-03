@@ -118,7 +118,12 @@ export const actions = {
 		});
 		const info = await fetch('http://127.0.0.1:8787/tournament/initialize', {
 			method: 'POST',
-			body: JSON.stringify({ ...res, startTime: startTimeUnixSeconds })
+			body: JSON.stringify({
+				...res,
+				startTime: startTimeUnixSeconds,
+				username: user.username,
+				userId: user.id
+			})
 		});
 		console.log(await info.json());
 		return message(form, res);

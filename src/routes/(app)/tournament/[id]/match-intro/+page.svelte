@@ -3,24 +3,83 @@
 	import * as Button from '$lib/components/ui/button';
 	import { goto } from '$app/navigation';
 	import { enhance } from '$app/forms';
-
+	import { onMount, onDestroy } from 'svelte';
+	import { PUBLIC_WORKERS_URL } from '$env/static/public';
 	let { data } = $props();
 	let opponent = $derived(data.opponent);
 	let matchId = $derived(data.matchId);
+	let tournamentId = $derived(data.tournamentId); // Add this
 
-	let timeLeft = $state(30);
+	let timeLeft = $state(330);
 	let isReady = $state(false);
-	let opponentReady = $state(false); // This should be synced with your backend
+	let opponentReady = $state(false);
 	let startCountdown = $state(5);
 	let matchTimer: NodeJS.Timeout;
 	let gameStartTimer: NodeJS.Timeout;
+	let ws: WebSocket;
 
-	$effect(() => {
-		initMatchTimer();
-		return () => {
-			if (matchTimer) clearInterval(matchTimer);
-			if (gameStartTimer) clearInterval(gameStartTimer);
+	onMount(() => {
+		console.log('🔄 Connecting to WebSocket...', {
+			url: `ws://${PUBLIC_WORKERS_URL}/tournament/${tournamentId}/connect`,
+			tournamentId,
+			matchId
+		});
+
+		// Connect to WebSocket
+		ws = new WebSocket(`ws://${PUBLIC_WORKERS_URL}/tournament/${tournamentId}/connect`);
+
+		ws.onopen = () => {
+			console.log('✅ WebSocket connected');
 		};
+
+		ws.onmessage = (event) => {
+			const data = JSON.parse(event.data);
+			console.log('📨 WebSocket message received:', data);
+
+			switch (data.type) {
+				case 'PLAYER_READY':
+					if (data.payload.matchId === matchId) {
+						console.log('👤 Player ready update:', data.payload);
+						if (data.payload.playerId === opponent.id) {
+							opponentReady = true;
+						}
+					}
+					break;
+				case 'MATCH_READY':
+					if (data.payload.matchId === matchId) {
+						console.log('this is matchId from do', data.payload.matchId);
+						console.log('this is matchId', matchId);
+						console.log('🎮 Match ready, starting countdown');
+						// startGameCountdown();
+					}
+					break;
+				case 'STATE_UPDATE':
+					console.log('🔄 State update received:', data.payload);
+					// Update local state based on tournament state
+					const match = data.payload.matches?.find((m) => m.id === matchId);
+					if (match) {
+						if (match.status === 'IN_PROGRESS') {
+							startGameCountdown();
+						}
+					}
+					break;
+			}
+		};
+
+		ws.onerror = (error) => {
+			console.error('❌ WebSocket error:', error);
+		};
+
+		ws.onclose = () => {
+			console.log('🔌 WebSocket connection closed');
+		};
+
+		initMatchTimer();
+	});
+	onDestroy(() => {
+		if (ws) ws.close();
+		if (matchTimer) clearInterval(matchTimer);
+		if (gameStartTimer) clearInterval(gameStartTimer);
 	});
 
 	$effect(() => {
@@ -34,7 +93,7 @@
 			startCountdown -= 1;
 			if (startCountdown <= 0) {
 				clearInterval(gameStartTimer);
-				goto('../game');
+				goto(`/rps/room/${matchId}`);
 			}
 		}, 1000);
 	}
@@ -42,10 +101,10 @@
 	function initMatchTimer() {
 		matchTimer = setInterval(() => {
 			timeLeft -= 1;
-			if (timeLeft <= 0) {
-				clearInterval(matchTimer);
-				handleTimeout();
-			}
+			// if (timeLeft <= 0) {
+			// 	clearInterval(matchTimer);
+			// 	handleTimeout();
+			// }
 		}, 1000);
 	}
 
@@ -57,14 +116,34 @@
 
 	function handleReady() {
 		isReady = true;
-		// Add your ready logic here and sync with backend
+		// Send ready status via WebSocket
+		ws?.send(
+			JSON.stringify({
+				type: 'PLAYER_READY',
+				payload: {
+					matchId,
+					playerId: data.user.id
+				}
+			})
+		);
 	}
 
 	function handleAbort() {
 		if (matchTimer) clearInterval(matchTimer);
 		if (gameStartTimer) clearInterval(gameStartTimer);
-		// goto('../lobby');
+		ws?.send(
+			JSON.stringify({
+				type: 'FORFEIT_MATCH',
+				payload: {
+					matchId,
+					playerId: data.user.id
+				}
+			})
+		);
+		goto(`/tournament/${tournamentId}`);
 	}
+
+	// Modify your form enhancement
 </script>
 
 <div class="min-h-screen flex items-center justify-center bg-background">
@@ -82,19 +161,15 @@
 		<div class="flex flex-col items-center space-y-6 py-8">
 			<div class="relative">
 				<Avatar.Root class="w-32 h-32">
-					<Avatar.Image
-						src={opponent.user.picture ?? ''}
-						alt={opponent.user.username}
-						class="object-cover"
-					/>
+					<Avatar.Image src={opponent.picture ?? ''} alt={opponent.username} class="object-cover" />
 					<Avatar.Fallback class="text-2xl"
-						>{opponent.user.username.slice(0, 2).toUpperCase()}</Avatar.Fallback
+						>{opponent.username.slice(0, 2).toUpperCase()}</Avatar.Fallback
 					>
 				</Avatar.Root>
 				<div
 					class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-medium"
 				>
-					{opponent.points ?? 1500}
+					{opponent.points ?? 0}
 				</div>
 				{#if opponentReady}
 					<div
@@ -113,9 +188,9 @@
 			</div>
 
 			<div class="text-center space-y-2">
-				<h2 class="text-2xl font-semibold">{opponent.user.username}</h2>
+				<h2 class="text-2xl font-semibold">{opponent.username}</h2>
 				<div class="flex items-center justify-center gap-2">
-					<p class="text-muted-foreground">Rating: {opponent.points ?? 1500}</p>
+					<p class="text-muted-foreground">Rating: {opponent.points ?? 0}</p>
 					<div
 						class="text-sm px-2 py-0.5 rounded-full {opponentReady
 							? 'bg-green-500/10 text-green-500'

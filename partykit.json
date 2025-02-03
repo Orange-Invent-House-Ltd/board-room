@@ -1,0 +1,9 @@
+{
+  "$schema": "https://www.partykit.io/schema.json",
+  "name": "board-room-party",
+  "main": "party/index.ts",
+  "compatibilityDate": "2025-01-31",
+  "parties": {
+    "tournament": "party/tournament.ts"
+  }
+}

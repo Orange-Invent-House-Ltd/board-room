@@ -70,11 +70,16 @@ export const actions = {
 				// Update the current number of participants
 				const updatedPlayers = tournament.currentPlayers + 1;
 
-				await db
+				const updatedTournament = await db
 					.update(schema.tournamentsTable)
 					.set({ currentPlayers: updatedPlayers })
-					.where(eq(schema.tournamentsTable.id, tournamentId));
-				
+					.where(eq(schema.tournamentsTable.id, tournamentId))
+					.returning()
+					.get();
+				const info = await fetch('http://127.0.0.1:8787/tournament/join', {
+					method: 'PUT',
+					body: JSON.stringify({ ...updatedTournament, username: user.username, userId: user.id })
+				});
 			}
 
 			return { success: true };

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { PUBLIC_WORKERS_URL } from '$env/static/public';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import type { Message, TournamentMessage } from '$lib/types';
 	import Chat from './components/Chat.svelte';
@@ -9,7 +11,7 @@
 	import Players from './components/Players.svelte';
 	import Rules from './components/Rules.svelte';
 	import Timer from './components/Timer.svelte';
-
+	import { toast } from 'svelte-sonner';
 	let { data } = $props();
 	let socket: WebSocket;
 	let messages = $state<Message[]>([]);
@@ -22,69 +24,89 @@
 	let isTournamentStarted = $state<boolean>(false);
 
 	$effect(() => {
-		if (browser) {
-			playerId = $page.data.userWithStats.id;
-			socket = new WebSocket(`ws://localhost:8787/tournament/${data.tournament.id}/connect`);
+		playerId = $page.data.userWithStats.id;
+		socket = new WebSocket(`ws://${PUBLIC_WORKERS_URL}/tournament/${data.tournament.id}/connect`);
 
-			socket.onopen = () => {
-				console.log('WebSocket connected');
-				console.log(
-					'WebSocket connection established, about to send the joinTournament type with payload'
-				);
-				// Send a message to the server indicating the player has joined
-				socket.send(
-					JSON.stringify({
-						type: 'JOIN_TOURNAMENT',
-						payload: { playerId, username }
-					})
-				);
-			};
+		socket.onopen = () => {
+			console.log('WebSocket connected');
+			console.log(
+				'WebSocket connection established, about to send the joinTournament type with payload'
+			);
+			// Send a message to the server indicating the player has joined
+		};
 
-			socket.onmessage = (event) => {
-				const data = JSON.parse(event.data) as TournamentMessage;
-				switch (data.type) {
-					case 'CHAT_MESSAGE':
-						console.log('some messages came in', data.payload);
-						messages.push({
-							...data.payload,
-							id: crypto.randomUUID(),
-							isMine: data.payload.playerId === playerId,
-							text: data.payload.content,
-							username: data.payload.username
-						});
-						break;
-					case 'TOURNAMENT_START_COUNTDOWN':
-						// Update tournament start countdown
-						const remainingTime = data.payload.remainingTime;
-						tournamentStartCountdown = formatTime(remainingTime);
-						if (remainingTime <= 0) {
-							isTournamentStarted = true;
-						}
-						break;
-					case 'COUNTDOWN_UPDATE':
-						// Update round countdown
-						const roundRemainingTime = data.payload.remainingTime;
-						roundCountdown = formatTime(roundRemainingTime);
-						break;
-					case 'JOIN_TOURNAMENT':
-						console.log('let see how this works', data.payload);
-						break;
-					default:
-				}
-			};
+		socket.onmessage = (event) => {
+			const data = JSON.parse(event.data) as TournamentMessage;
+			switch (data.type) {
+				case 'CHAT_MESSAGE':
+					console.log('some messages came in', data.payload);
+					messages.push({
+						...data.payload,
+						id: crypto.randomUUID(),
+						isMine: data.payload.playerId === playerId,
+						text: data.payload.content,
+						username: data.payload.username
+					});
+					break;
+				case 'TOURNAMENT_START_COUNTDOWN':
+					// Update tournament start countdown
+					const remainingTime = data.payload.remainingTime;
+					tournamentStartCountdown = formatTime(remainingTime);
+					if (remainingTime <= 0) {
+						isTournamentStarted = true;
+					}
+					break;
+				case 'COUNTDOWN_UPDATE':
+					// Update round countdown
+					const roundRemainingTime = data.payload.remainingTime;
+					roundCountdown = formatTime(roundRemainingTime);
+					break;
+				case 'JOIN_TOURNAMENT':
+					console.log('🚀 ~ $effect ~ data.payload.username:', data.payload.username);
+					toast.success(`${data.payload.username} Joined tournament`);
+					break;
+				case 'TOURNAMENT_START':
+					console.log('Tournament started');
+					if (!data.payload.tournamentId) {
+						console.error('Missing tournament ID in payload', data.payload);
+						toast.error('Error starting tournament');
+						return;
+					}
+					console.log('🚀 ~ $effect ~ data.payload.matches:', data.payload);
+					// Find the player's match
+					const playerMatch = data.payload.matches.find(
+						(match) => match.player1Id === playerId || match.player2Id === playerId
+					);
 
-			socket.onerror = (error) => {
-				console.error('WebSocket error:', error);
-			};
+					if (!playerMatch) {
+						console.error('No match found for player');
+						toast.error('Error finding your match');
+						return;
+					}
 
-			socket.onclose = () => {
-				console.log('WebSocket closed');
-			};
+					toast.success(`tournament ready`);
+					try {
+						goto(`/tournament/${data.payload.tournamentId}/match-intro`);
+					} catch (error) {
+						console.error('Error navigating to match intro:', error);
+						toast.error('Error joining match');
+					}
+					break;
+				default:
+			}
+		};
 
-			return () => {
-				socket.close();
-			};
-		}
+		socket.onerror = (error) => {
+			console.error('WebSocket error:', error);
+		};
+
+		socket.onclose = () => {
+			console.log('WebSocket closed');
+		};
+
+		return () => {
+			socket.close();
+		};
 	});
 
 	// Helper function to format time (milliseconds) into MM:SS
@@ -106,18 +128,6 @@
 		}
 	}
 </script>
-
-<!-- Tournament Start Countdown -->
-{#if !isTournamentStarted}
-	<div class="countdown">
-		Tournament starts in: {tournamentStartCountdown}
-	</div>
-{:else}
-	<!-- Round Countdown -->
-	<div class="countdown">
-		Round Countdown: {roundCountdown}
-	</div>
-{/if}
 
 <!-- Tabs and Other UI Components -->
 <Tabs.Root value="overview" class="w-[400px]">

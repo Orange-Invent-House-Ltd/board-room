@@ -15,6 +15,7 @@
 	};
 	let timeLeft = tournamentInfo.timeLeft;
 	let { data } = $props();
+	
 </script>
 
 <div>
@@ -111,13 +112,16 @@
 			<Button variant="outline" class="w-full rounded-full  py-3 text-white"
 				>Watch tournament</Button
 			>
+			
 		</form>
 	{/if}
+
 	{#if data.isTournamentFull === true}
 		<div
 			class="w-full text-center capitalize h-20 flex items-center justify-center text-muted-foreground"
 		>
 			Tournament is full
 		</div>
+
 	{/if}
 </div>

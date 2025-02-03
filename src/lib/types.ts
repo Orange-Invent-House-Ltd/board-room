@@ -59,7 +59,8 @@ export type TournamentMessage = {
 		| 'FORFEIT_MATCH'
 		| 'CHAT_MESSAGE'
 		| 'TOURNAMENT_START_COUNTDOWN'
-		| 'COUNTDOWN_UPDATE';
+		| 'COUNTDOWN_UPDATE'
+		| 'TOURNAMENT_START';
 	payload: any;
 };
 

@@ -1,116 +1,74 @@
-// TODO:
-//   default opening book
-//   skill level
-//   setMoveTime, setDepth, setSkill
-//   expose a bindable engine-is-searching boolean from the Chess component? or from this class?
-import type { Color } from '$lib/chessApi/api.js';
-
-export interface EngineOptions {
-	//skill?: number, // 1-20
-	moveTime?: number; // Maximum time in ms to spend on a move
-	depth?: number; // Maximum depth to search per move
-	color?: Color | 'both' | 'none';
-	stockfishPath?: string;
-}
-
-enum State {
-	Uninitialised = 'uninitialised',
-	Initialising = 'initialising',
-	Waiting = 'waiting',
-	Searching = 'searching' // searching for the best move
-}
+import type { Chess } from 'chess.js';
+import type { Color } from './api';
 
 export class Engine {
-	private stockfish: Worker | undefined;
-	private state = State.Uninitialised;
-	private moveTime: number;
-	private depth: number;
-	private color: Color | 'both' | 'none';
-	private stockfishPath: string;
-	private externalUciCallback: ((uci: string) => void) | undefined = undefined;
-	// Callbacks used when waiting for specific UCI messages
-	private onUciOk: (() => void) | undefined = undefined; // "uciok" marks end of initialisation
-	private onBestMove: ((uci: string) => void) | undefined = undefined; // "uciok", used during initialisation
-	// Constructor
-	constructor(options: EngineOptions = {}) {
-		this.moveTime = options.moveTime || 2000;
-		this.depth = options.depth || 40;
-		this.color = options.color || 'b';
-		this.stockfishPath = options.stockfishPath || '/stockfish.js';
+	color: Color;
+	depth: number;
+	moveTime: number;
+	onMove?: (move: { from: string; to: string; promotion?: string }) => void;
+	private worker: Worker;
+
+	constructor({ color, depth, moveTime }: { color: Color; depth: number; moveTime: number }) {
+		this.color = color;
+		this.depth = depth;
+		this.moveTime = moveTime;
+
+		if (typeof window !== 'undefined') {
+			this.worker = new Worker('/stockfish.js');
+			this.worker.onmessage = (e) => this.handleMessage(e);
+			this.init();
+		}
 	}
 
-	// Initialise Stockfish. Resolve promise after receiving uciok.
-	init(): Promise<void> {
-		return new Promise((resolve) => {
-			this.state = State.Initialising;
-			// NOTE: stockfish.js is not part of the npm package due to its size (1-2 MB).
-			// You can find the file here: https://github.com/gtim/svelte-chess/tree/main/static
-			this.stockfish = new Worker(this.stockfishPath);
-			this.stockfish.addEventListener('message', (e) => this._onUci(e));
-			this.onUciOk = () => {
-				if (this.state === State.Initialising) {
-					this.state = State.Waiting;
-					this.onUciOk = undefined;
-					resolve();
+	private init() {
+		this.worker.postMessage('uci');
+		this.worker.postMessage('isready');
+	}
+
+	analyze(fen: string) {
+		if (!this.worker) return;
+
+		// Clear any previous analysis
+		this.worker.postMessage('stop');
+		this.worker.postMessage('position fen ' + fen);
+		this.worker.postMessage(`go depth ${this.depth} movetime ${this.moveTime}`);
+	}
+
+	private handleMessage(e: MessageEvent) {
+		const message = e.data as string;
+		if (message.startsWith('bestmove')) {
+			const [, moveStr] = message.split(' ');
+			if (moveStr && moveStr !== '(none)' && this.onMove) {
+				try {
+					// Convert UCI move format (e.g. "e2e4") to move object
+					const from = moveStr.slice(0, 2);
+					const to = moveStr.slice(2, 4);
+					const promotion = moveStr.length > 4 ? moveStr[4] : undefined;
+
+					// Only send valid moves
+					this.onMove({ from, to, promotion });
+				} catch (err) {
+					console.error('Engine move error:', err);
 				}
-			};
-			this.stockfish.postMessage('uci');
-		});
-	}
-
-	// Callback when receiving UCI messages from Stockfish.
-	private _onUci({ data }: { data: string }): void {
-		const uci = data;
-		if (this.onUciOk && uci === 'uciok') {
-			this.onUciOk();
-		}
-		if (this.onBestMove && uci.slice(0, 8) === 'bestmove') {
-			this.onBestMove(uci);
-		}
-		if (this.externalUciCallback) {
-			this.externalUciCallback(uci);
+			}
 		}
 	}
-	setUciCallback(callback: (uci: string) => void) {
-		this.externalUciCallback = callback;
+
+	setUciCallback(callback: (message: string) => void) {
+		const originalOnMessage = this.worker.onmessage;
+		this.worker.onmessage = (e) => {
+			callback(e.data);
+			if (originalOnMessage) {
+				originalOnMessage.call(this.worker, e);
+			}
+		};
 	}
 
-	getMove(fen: string): Promise<string> {
-		return new Promise((resolve) => {
-			if (!this.stockfish) throw new Error('Engine not initialised');
-			if (this.state !== State.Waiting)
-				throw new Error('Engine not ready (state: ' + this.state + ')');
-			this.state = State.Searching;
-			this.stockfish.postMessage('position fen ' + fen);
-			this.stockfish.postMessage(`go depth ${this.depth} movetime ${this.moveTime}`);
-			this.onBestMove = (uci: string) => {
-				const uciArray = uci.split(' ');
-				const bestMoveLan = uciArray[1];
-				this.state = State.Waiting;
-				this.onBestMove = undefined;
-				resolve(bestMoveLan);
-			};
-		});
+	stopSearch() {
+		this.worker.postMessage('stop');
 	}
 
-	getColor() {
-		return this.color;
-	}
-
-	isSearching() {
-		return this.state === State.Searching;
-	}
-
-	async stopSearch() {
-		return new Promise<void>((resolve) => {
-			if (!this.stockfish) throw new Error('Engine not initialised');
-			if (this.state !== State.Searching) resolve();
-			this.onBestMove = (uci: string) => {
-				this.state = State.Waiting;
-				this.onBestMove = undefined;
-				resolve();
-			};
-			this.stockfish.postMessage('stop');
-		});
+	destroy() {
+		this.worker?.terminate();
 	}
 }

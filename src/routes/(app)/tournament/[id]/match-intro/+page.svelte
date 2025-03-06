@@ -93,7 +93,7 @@
 			startCountdown -= 1;
 			if (startCountdown <= 0) {
 				clearInterval(gameStartTimer);
-				goto(`/rps/room/${matchId}`);
+				goto(`/rps/tournament/room/${matchId}`);
 			}
 		}, 1000);
 	}

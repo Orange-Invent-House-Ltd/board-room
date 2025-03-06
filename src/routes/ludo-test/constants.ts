@@ -119,3 +119,18 @@ export const STATE = {
 	DICE_NOT_ROLLED: 'DICE_NOT_ROLLED',
 	DICE_ROLLED: 'DICE_ROLLED'
 };
+
+export const PLAYER_COLORS = {
+	P1: {
+		primary: '#2563eb',
+		secondary: '#3b82f6',
+		accent: '#60a5fa',
+		text: '#1e40af'
+	},
+	P2: {
+		primary: '#16a34a',
+		secondary: '#22c55e',
+		accent: '#4ade80',
+		text: '#15803d'
+	}
+} as const;

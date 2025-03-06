@@ -152,8 +152,8 @@ export function getWinner(boardState) {
 export function getPieceCount(boardState) {
 	return boardState.pieces.reduce(
 		(count, piece) => {
-			if (Math.abs(piece.state) === RED) count.red++;
-			if (Math.abs(piece.state) === BLACK) count.black++;
+			if (Math.abs(piece.state) === RED || piece.state === RED_KING) count.red++;
+			if (Math.abs(piece.state) === Math.abs(BLACK) || piece.state === BLACK_KING) count.black++;
 			return count;
 		},
 		{ red: 0, black: 0 }
